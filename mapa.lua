@@ -1,48 +1,29 @@
-local mapa={}
-local Rmapa
-local Umapa={}
-local spritesheet=""
-Quads={}
-prueba="abcdefghijklmnopqrstuvxwyzABCDEFGHIJKLMN"
-local lspritesheet
-local tille={}
+mapa={tablamapa=nil,tilex=0,tiley=0,tiles="terrainTiles_default",smapa={},quads={}}
 
-
-function mapa.setup()
-    lspritesheet=love.graphics.newImage(spritesheet)
-    tilesize=64
-    for i=1,10 do
-        Quads[i]={}
-        for a=1,4 do
-          Quads[i][a]=love.graphics.newQuad(0*(i-1)*64,0*(a-1)*64,64,64,640,256)
-        end
-    end
-    for j=1,string.len( prueba ) do
-    tille[prueb[j]]=j
-    end
+function mapa.cargarMapa(ruta)
+mapa.tablamapa=require(ruta)
 end
+function mapa.calcularQuads()
 
-function mapa.cargar(ruta)
-    Rmapa=io.open(ruta,"r")
-    local f=Rmapa:read("*line")
-    local ind=1
-    while f!=nil do
-      Umapa[ind]=f
-      f=Rmapa:read("*line")
-    end 
-    Rmapa:close()   
-end
-
---poss se refiere a la esquina superior izquierda
-function mapa.dibujar(poss)
---800,12.5
---600,9.375
-
-
-
-
+for i=1,10 do 
+  for j=1,4 do 
+    local proq=love.graphics.newQuad((i-1)*64,(j-1)*64 , 64, 64, sw (number), sh (number))
+    table.insert(mapa.quads,proq)
+  end
 
 end
 
+end
+function mapa.cargarlocal()
+for i=1,10000 do
+iy=math.floor(i/100)+1
+ix=i+100-math.floor(i/100)*100
+end
+end
+
+function mapa.dibujar(x,y)
+
+end
 
 return mapa
+

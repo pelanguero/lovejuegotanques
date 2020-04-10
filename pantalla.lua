@@ -1,12 +1,19 @@
-local pantalla={}
+local pantalla={capas={}}
 
-pantalla.capas={}
+function pantalla:cargar(){
+    
+}
+
+function pantalla.agregarCapa(capa)
+table.insert(capas,capa)
+end
 
 
 
-function pantalla.dibujarCapas()
+function pantalla.dibujarCapas(x,y,eventos)
 for i=1,#pantalla.capas do
-    pantalla.capas[i].dibujar()
+    pantalla.capas[i].actualizar(eventos)
+    pantalla.capas[i].dibujar(x,y)
 end
 end
 
