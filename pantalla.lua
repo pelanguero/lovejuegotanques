@@ -11,10 +11,10 @@ end
 
 
 function pantalla:dibujarCapas(x,y,eventos)
-for i=1,#pantalla.capas do
-    --pantalla.capas[i].actualizar(eventos)
-    pantalla.capas[i].dibujar(x,y)
-end
+    for i=1,#pantalla.capas do
+        --pantalla.capas[i].actualizar(eventos)
+        pantalla.capas[i].dibujar(x,y)
+    end
 end
 
 return pantalla

@@ -1,5 +1,10 @@
 pantallaActual=1
 juego=require "juego"
+
+------------------
+velocidad = 130
+vida = 1
+-------------
 pantallas={}
 for i=1,2 do 
 pantallas[i]=0;
@@ -21,17 +26,18 @@ function love.update(dt)
     --eventos de mouse para elegir la opcion en el menu
     if love.keyboard.isDown("w") then
         if juego.ey~=0 then
-            juego.ey=juego.ey-32*dt
+            juego.ey=juego.ey-velocidad*dt
         end   
     elseif love.keyboard.isDown("s") then
-            juego.ey=juego.ey+32*dt
+            juego.ey=juego.ey+velocidad*dt
     elseif love.keyboard.isDown("a") then
         if juego.ex~=0 then
-            juego.ex=juego.ex-32*dt
+            juego.ex=juego.ex-velocidad*dt
         end  
     elseif love.keyboard.isDown("d") then
-        juego.ex=juego.ex+32*dt
+        juego.ex=juego.ex+velocidad*dt
     end
+    juego.vi=vida
 end
 
 function love.draw()

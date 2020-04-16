@@ -1,6 +1,6 @@
 
 --terreno, jugador
-juego={map=require "mapa",capas={},ex=0,ey=0}
+juego={map=require "mapa",capas={},ex=0,ey=0,vi=0}
 
 function juego:agregarcapa(per)
 table.insert(juego.capas,per)
@@ -12,6 +12,7 @@ function juego:new()
     juego:agregarcapa(juego.map)
 end
 
+
 function juego:dibujarCapas()
 for i=1,table.maxn(juego.capas) do 
     if juego.ex<0 then 
@@ -20,7 +21,8 @@ for i=1,table.maxn(juego.capas) do
     if juego.ey<0 then
     juego.ey=0
     end
-    juego.capas[i].dibujar(juego.ex,juego.ey)
+    juego.capas[i].dibujar(juego.ex,juego.ey,juego.vi)    
+
 end
 end
 return juego
