@@ -41,17 +41,21 @@ function mapa:new(prro)
   mapa.cargarlocal()
   mapa.tilless=love.graphics.newImage(mapa.tiles)
 end
-
 function mapa.dibujar(xd,yd,vi)
   qpx=math.floor(xd/64)+1
   qpy=math.floor(yd/64)+1
   ofx=64*math.floor(xd/64)-xd
   ofy=64*math.floor(yd/64)-yd
   subi=(qpy-1)*100+qpx
-  --
-  barra = love.graphics.newImage("barra_vida.png")
-  quad_v = love.graphics.newQuad( 394, 1, 197, 45, 590, 45)
-
+  --------------------------     
+  if vi < 1 then
+    qy=1
+  else
+  qy=math.floor(vi*45)
+  end 
+  barra = love.graphics.newImage("barra_v.png")
+  quad_v = love.graphics.newQuad( 1, qy, 197, 45, 197, 450)
+  -----------------------------------
   for i=1,11 do 
     for j=1,14 do
       love.graphics.draw(mapa.tilless,mapa.quads[mapa.tablamapa.layers[1].data[subi]],ofx+(j-1)*64,ofy+(i-1)*64)

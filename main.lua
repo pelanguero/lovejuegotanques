@@ -3,7 +3,7 @@ juego=require "juego"
 
 ------------------
 velocidad = 130
-vida = 1
+vida = 1 --- 10 opciones desde el 0
 -------------
 pantallas={}
 for i=1,2 do 
@@ -42,5 +42,4 @@ end
 
 function love.draw()
 pantallas[pantallaActual].dibujarCapas()
---love.graphics.draw(ifr,0,0)
 end
