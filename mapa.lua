@@ -47,14 +47,14 @@ function mapa.dibujar(xd,yd)
   qpy=math.floor(yd/64)+1
   ofx=64*math.floor(xd/64)-xd
   ofy=64*math.floor(yd/64)-yd
-  subi=(qpy-1)*100+qpx
+  subi=(qpy-1)*mapa.tablamapa.width+qpx
   --
   for i=1,11 do 
     for j=1,14 do
       love.graphics.draw(mapa.tilless,mapa.quads[mapa.tablamapa.layers[1].data[subi]],ofx+(j-1)*64,ofy+(i-1)*64)
       subi=subi+1
     end
-    subi=subi+86
+    subi=subi+mapa.tablamapa.width-14
   end
 end
 

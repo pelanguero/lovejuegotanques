@@ -4,10 +4,9 @@ pantallas={}
 for i=1,2 do 
 pantallas[i]=0;
 end
+local ssangulo = math.rad(90)
 juego.new()
 pantallas[1]=juego
-xd=0
-yd=10
 eventoss={}
 ifr=nil
 
@@ -19,18 +18,29 @@ end
 
 function love.update(dt)
     --eventos de mouse para elegir la opcion en el menu
+
     if love.keyboard.isDown("w") then
-        if juego.ey~=0 then
-            juego.ey=juego.ey-32*dt
-        end   
+            juego.entidades.entidadess[1].posY=juego.entidades.entidadess[1].posY-juego.entidades.entidadess[1].magnitud*math.sin(juego.entidades.entidadess[1].angulo-ssangulo)*dt
+            if juego.entidades.entidadess[1].posY<0 then
+                juego.entidades.entidadess[1].posY=0
+            end
+            juego.entidades.entidadess[1].posX=juego.entidades.entidadess[1].posX-juego.entidades.entidadess[1].magnitud*math.cos(juego.entidades.entidadess[1].angulo-ssangulo)*dt
+            if juego.entidades.entidadess[1].posX<0 then
+                juego.entidades.entidadess[1].posX=0
+            end
     elseif love.keyboard.isDown("s") then
-            juego.ey=juego.ey+32*dt
+        juego.entidades.entidadess[1].posY=juego.entidades.entidadess[1].posY+juego.entidades.entidadess[1].magnitud*math.sin(juego.entidades.entidadess[1].angulo-ssangulo)*dt
+        if juego.entidades.entidadess[1].posY<0 then
+            juego.entidades.entidadess[1].posY=0
+        end
+        juego.entidades.entidadess[1].posX=juego.entidades.entidadess[1].posX+juego.entidades.entidadess[1].magnitud*math.cos(juego.entidades.entidadess[1].angulo-ssangulo)*dt
+        if juego.entidades.entidadess[1].posX<0 then
+            juego.entidades.entidadess[1].posX=0
+        end
     elseif love.keyboard.isDown("a") then
-        if juego.ex~=0 then
-            juego.ex=juego.ex-32*dt
-        end  
+        juego.entidades.entidadess[1].angulo=juego.entidades.entidadess[1].angulo-math.rad(100)*dt
     elseif love.keyboard.isDown("d") then
-        juego.ex=juego.ex+32*dt
+        juego.entidades.entidadess[1].angulo=juego.entidades.entidadess[1].angulo+math.rad(100)*dt
     end
 end
 
