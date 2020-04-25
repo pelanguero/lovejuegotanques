@@ -56,9 +56,6 @@ function mapa.dibujar(xd,yd,vi)
     end
     subi=subi+86    
   end
-  
-
-  love.graphics.draw( barra,quad_v,1,1 )
 end
 
 return mapa
