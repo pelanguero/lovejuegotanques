@@ -45,12 +45,8 @@ function mapa.dibujar(xd,yd,vi)
   ofy=64*math.floor(yd/64)-yd
   subi=(qpy-1)*100+qpx  
  
-  --------------------------     
+  --------------------------      
   
-  qy=math.floor(vi*45)+1
-   
-  quad_v = love.graphics.newQuad( 1, qy, 197, 45, 197, 450)
-  barra = love.graphics.newImage("barra_v.png")  
   -----------------------------------
   for i=1,11 do 
     for j=1,14 do
