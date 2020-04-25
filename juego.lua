@@ -1,6 +1,7 @@
 
 --terreno, jugador
-juego={map=require "mapa",capas={},ex=0,ey=0,angulo=0,tanque="tank_green.png",tank=nil,magnitud=54,jugador=require "jugador",entidades=require "entidades"}
+juego={map=require "mapa",capas={},ex=0,ey=0,angulo=0,tanque="tank_green.png",tank=nil,magnitud=54,jugador=require "jugador",entidades=require "entidades",
+hud=require "hud"}
 
 function juego:agregarcapa(per)
 table.insert(juego.capas,per)
@@ -9,11 +10,15 @@ end
 function juego:new()
     -- body
     juego.tank=love.graphics.newImage(juego.tanque)
-    juego.map.new("mapadeprueba..lua")
+    juego.map.new("mapadeprueba..lua")    
     juego:agregarcapa(juego.map)
-    juego.jugador.new(800,900,juego.tanque)
-    juego.entidades.agregar(juego.jugador)
-    juego.agregarcapa(juego.entidades)
+    juego.jugador.new(800,900,juego.tanque)    
+    juego.entidades.agregar(juego.jugador)   
+    juego.agregarcapa(juego.entidades)    
+    juego.agregarcapa(juego.hud)       
+    
+    
+
 end
 
 function juego:calcularexy()
@@ -33,11 +38,12 @@ end
 end
 
 function juego:dibujarCapas()
-juego.calcularexy()
-for i=1,table.maxn(juego.capas) do 
-    juego.capas[i].dibujar(juego.ex,juego.ey)
-end
-juego.entidades.dibujar(juego.ex,juego.ey)
+    juego.calcularexy()
+    for i=1,table.maxn(juego.capas) do 
+        juego.capas[i].dibujar(juego.ex,juego.ey)
+    end
+    juego.entidades.dibujar(juego.ex,juego.ey)
+
 --love.graphics.draw(juego.tank,379,268,juego.angulo,1,1,21,23,0,0)
 end
 return juego
