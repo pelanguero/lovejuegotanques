@@ -3,7 +3,7 @@ juego=require "juego"
 
 ------------------
 velocidad = 130
-vida = 1 --- 10 opciones desde el 0
+vida = 0 --- 10 opciones desde el 0
 -------------
 pantallas={}
 for i=1,2 do 
