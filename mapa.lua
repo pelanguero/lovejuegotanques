@@ -5,13 +5,12 @@ mapa.tablamapa=require("mapadeprueba")
 end
 function mapa.calcularQuads()
 a=0
-for i=1,4 do 
-  for j=1,10 do 
-    a=a+1
-    mapa.quads[a]=love.graphics.newQuad((j-1)*64,(i-1)*64 , 64, 64, 640, 256)
+  for i=1,4 do 
+    for j=1,10 do 
+      a=a+1
+      mapa.quads[a]=love.graphics.newQuad((j-1)*64,(i-1)*64 , 64, 64, 640, 256)
+    end
   end
-
-end
 
 end
 function mapa.cargarlocal()
@@ -27,7 +26,6 @@ ix=i-math.floor(i/100)*100+1
 if ix==0 then 
 ix=100
 end
-erer=mapa.tablamapa.layers[1].data[i] 
 mapa.smapa[ix][iy]=mapa.tablamapa.layers[1].data[i]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
 end
 end
