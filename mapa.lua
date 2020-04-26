@@ -1,7 +1,7 @@
 mapa={tablamapa=nil,tilex=0,tiley=0,tiles="terrainTiles_default.png",smapa={},quads={},tilles=nil}
 
 function mapa.cargarMapa(ruta)
-mapa.tablamapa=require("mapadeprueba")
+  mapa.tablamapa=require("mapadeprueba")
 end
 function mapa.calcularQuads()
 a=0
@@ -16,22 +16,20 @@ end
 function mapa.cargarlocal()
   for u=1,100 do 
   mapa.smapa[u]={}
-  for v=1,100 do
-    mapa.smapa[u][v]=0
+    for v=1,100 do
+      mapa.smapa[u][v]=0
+    end
   end
+  for i=1,10000 do
+    iy=math.floor(i/100)+1
+    ix=i-math.floor(i/100)*100+1
+      if ix==0 then 
+      ix=100
+      end
+    mapa.smapa[ix][iy]=mapa.tablamapa.layers[1].data[i]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
   end
-for i=1,10000 do
-iy=math.floor(i/100)+1
-ix=i-math.floor(i/100)*100+1
-if ix==0 then 
-ix=100
 end
-mapa.smapa[ix][iy]=mapa.tablamapa.layers[1].data[i]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
-end
-end
-function mapa.calcularpos(xx,yy)
-  
-end
+
 
 function mapa:new(prro)
   mapa.cargarMapa(prro)
@@ -49,12 +47,13 @@ function mapa.dibujar(xd,yd)
   --
   for i=1,11 do 
     for j=1,14 do
-      love.graphics.draw(mapa.tilless,mapa.quads[mapa.tablamapa.layers[1].data[subi]],ofx+(j-1)*64,ofy+(i-1)*64)
+      love.graphics.draw(mapa.tilless,mapa.quads[mapa.tablamapa.layers[1].data[subi]],ofx+(j-1)*64,ofy+(i-1)*64)      
       subi=subi+1
     end
     subi=subi+mapa.tablamapa.width-14
   end
 end
+
 
 return mapa
 
