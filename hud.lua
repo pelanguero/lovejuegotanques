@@ -33,7 +33,8 @@ hud.tilless=love.graphics.newImage(hud.tiles)
 hud.calculapw()
 
 function hud.mapa()  
- 
+  x,y=love.window.getMode( )
+  love.graphics.rectangle( "line",hud.anchop, 1, 200, 200 )
 end
 
 
@@ -44,10 +45,12 @@ function hud.dibujar(x,y)
     p=1   
     for  i=1,100 do 
        for j=1, 100 do
-         love.graphics.draw(hud.tilless,hud.quads[hud.tablam.layers[1].data[p]],hud.anchop+(j-1)*tx,(i-1)*ty,0,an,al)          
+         love.graphics.draw(hud.tilless,hud.quads[hud.tablam.layers[1].data[p]],hud.anchop+(j-1)*tx,(i-1)*ty,0,an,al)   
+         hud.mapa()       
          p=p+1
        end 
      end
+     
 end
 end
 return hud

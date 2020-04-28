@@ -49,5 +49,6 @@ end
 function love.draw()
 pantallas[pantallaActual].dibujarCapas()
 juego.hud.dibujar(juego.ex,juego.ey)
+--juego.hud.mapa()
 --love.graphics.draw(ifr,0,0)
 end
