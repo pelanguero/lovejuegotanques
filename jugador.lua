@@ -27,9 +27,7 @@ end
 
 function jugador.dibujar()
 jugador.calxy()
-
 love.graphics.draw(jugador.imagen,jugador.fx,jugador.fy,jugador.angulo,1,1,21,23,0,0)
-
 end
 
 return jugador 

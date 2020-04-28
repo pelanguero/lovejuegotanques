@@ -42,11 +42,11 @@ function love.update(dt)
         juego.entidades.entidadess[1].angulo=juego.entidades.entidadess[1].angulo-math.rad(100)*dt
     elseif love.keyboard.isDown("d") then
         juego.entidades.entidadess[1].angulo=juego.entidades.entidadess[1].angulo+math.rad(100)*dt
-    end    
+    end
+    
 end
 
 function love.draw()
 pantallas[pantallaActual].dibujarCapas()
-juego.hud.dibujar(juego.ex,juego.ey)
 --love.graphics.draw(ifr,0,0)
 end
