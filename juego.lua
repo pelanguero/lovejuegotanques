@@ -1,6 +1,6 @@
 
 --terreno, jugador
-juego={map=require "mapa",capas={},ex=0,ey=0,angulo=0,tanque="tank_green.png",tank=nil,magnitud=54,jugador=require "jugador",entidades=require "entidades",hud=require "hud"}
+juego={map=require "mapa",capas={},ex=0,ey=0,angulo=0,tanque="tank_green.png",tank=nil,magnitud=54,jugador=require "jugador",entidades=require "entidades"}
 
 function juego:agregarcapa(per)
 table.insert(juego.capas,per)
@@ -38,8 +38,9 @@ end
 function juego:dibujarCapas()
     juego.calcularexy()
     for i=1,table.maxn(juego.capas) do 
-        juego.capas[i].dibujar(juego.ex,juego.ey)
         juego.hud.dibujar(juego.ex,juego.ey)
+        juego.capas[i].dibujar(juego.ex,juego.ey)
+        
     end
     juego.entidades.dibujar(juego.ex,juego.ey)
 

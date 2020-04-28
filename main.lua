@@ -15,7 +15,6 @@ ifr=love.graphics.newImage("terrainTiles_default.png")
 xd=0
 yd=0
 end
-hud=require("hud")
 
 function love.update(dt)
     --eventos de mouse para elegir la opcion en el menu
