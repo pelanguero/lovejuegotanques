@@ -26,8 +26,8 @@ hud.tilless=love.graphics.newImage(hud.tiles)
 function hud.dibujar(x,y)  
    love.graphics.draw(hud.imagen,hud.qbarra,1,1)
    p=1   
-   for  i=1,11 do 
-      for j=1,14 do
+   for  i=1,22 do 
+      for j=1,28 do
         love.graphics.draw(hud.tilless,hud.quads[hud.tablam.layers[1].data[p]],(j-1)*12.8,(i-1)*12.8,0,0.2,0.2)    
         p=p+1
       end      
