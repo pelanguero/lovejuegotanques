@@ -1,4 +1,4 @@
-hud={anchop,altop,tilles=nil,tiles="terrainTiles_default.png",smapa={},tablam=nil,barrav="",vida=3,imagen,px=1,py=1,barra="barra_v.png",quads={}}
+hud={pmx,pmy,anchop,altop,tilles=nil,tiles="terrainTiles_default.png",smapa={},tablam=nil,barrav="",vida=3,imagen,px=1,py=1,barra="barra_v.png",quads={}}
 an,al,tx,ty=nil
 
 function hud.cargarMapa()
@@ -34,12 +34,13 @@ hud.calculapw()
 
 function hud.mapa()  
   x,y=love.window.getMode( )
-  love.graphics.rectangle( "line",hud.anchop, 1, 200, 200 )
+  love.graphics.rectangle( "line",hud.anchop+(hud.pmx*an),hud.pmy*an, x*an, y*an )
 end
 
 
 
-function hud.dibujar(x,y)  
+function hud.dibujar(x,y) 
+     
    love.graphics.draw(hud.imagen,hud.qbarra,1,1)
    if love.keyboard.isDown("m") then
     p=1   

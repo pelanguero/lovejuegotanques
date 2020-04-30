@@ -1,7 +1,7 @@
 
 --terreno, jugador
 juego={map=require "mapa",capas={},ex=0,ey=0,angulo=0,tanque="tank_green.png",tank=nil,magnitud=54,jugador=require "jugador",entidades=require "entidades",hud=require "hud"}
-
+hud=require"hud"
 function juego:agregarcapa(per)
 table.insert(juego.capas,per)
 end
@@ -35,6 +35,7 @@ end
 
 end
 
+
 function juego:dibujarCapas()
     juego.calcularexy()
     for i=1,table.maxn(juego.capas) do 
@@ -42,6 +43,8 @@ function juego:dibujarCapas()
         --juego.hud.dibujar(juego.ex,juego.ey)
     end
     juego.entidades.dibujar(juego.ex,juego.ey)
+    hud.pmx=juego.ex
+    hud.pmy=juego.ey
 
 --love.graphics.draw(juego.tank,379,268,juego.angulo,1,1,21,23,0,0)
 end
