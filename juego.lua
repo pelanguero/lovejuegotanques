@@ -1,10 +1,11 @@
 
 --terreno, jugador
-local juego={ map=require "mapa",capas={},exd=0,eyd=0,ex=0,ey=0,angulo=0,magnitud=54,entidades=require "entidades",mapd=require "mapad",modo=1,jugadord=require "jugador",sscanvas=nil,ssdcanvas=nil,mdx=0,mdy=0}
+local juego={ hud=require"hud",map=require "mapa",capas={},exd=0,eyd=0,ex=0,ey=0,angulo=0,magnitud=54,entidades=require "entidades",mapd=require "mapad",modo=1,jugadord=require "jugador",sscanvas=nil,ssdcanvas=nil,mdx=0,mdy=0}
 local tanques={tanqueR="tank_red.png",tanqueA="tank_blue.png",tanqueV="tank_green.png",tanqueN="tank_dark.png",tanqueGR="tank_bigRed.png",tanqueGO="tank_darkLarge.png",tanqueH="tank_huge.png",tanqueS="tank_sand.png"}
 local ssangulo = math.rad(90)
 function juego:agregarcapa(per)
 table.insert(juego.capas,per)
+
 end
 hud=require"hud"
 function juego:new()
@@ -137,6 +138,7 @@ end
 end
 
 function juego.procesarInput(dt)
+    --juego.hud=juego.modo
     if love.keyboard.isDown("y") then
     juego.cambiarModo()
     end    
