@@ -1,10 +1,9 @@
 pantallaActual=1
 juego=require "juego"
 pantallas={}
-for i=1,2 do 
-pantallas[i]=0;
-end
-local ssangulo = math.rad(90)
+hud=require"hud"
+pantallas[1]=0
+pantallas[2]=0
 juego.new()
 pantallas[1]=juego
 eventoss={}
@@ -12,43 +11,24 @@ ifr=nil
 
 function love.load()
 ifr=love.graphics.newImage("terrainTiles_default.png")
+love.window.setTitle("Tanks")
 xd=0
 yd=0
 end
-hud=require("hud")
 
 function love.update(dt)
     --eventos de mouse para elegir la opcion en el menu
-
-    if love.keyboard.isDown("w") then
-            juego.entidades.entidadess[1].posY=juego.entidades.entidadess[1].posY-juego.entidades.entidadess[1].magnitud*math.sin(juego.entidades.entidadess[1].angulo-ssangulo)*dt
-            if juego.entidades.entidadess[1].posY<0 then
-                juego.entidades.entidadess[1].posY=0
-            end
-            juego.entidades.entidadess[1].posX=juego.entidades.entidadess[1].posX-juego.entidades.entidadess[1].magnitud*math.cos(juego.entidades.entidadess[1].angulo-ssangulo)*dt
-            if juego.entidades.entidadess[1].posX<0 then
-                juego.entidades.entidadess[1].posX=0
-            end
-    elseif love.keyboard.isDown("s") then
-        juego.entidades.entidadess[1].posY=juego.entidades.entidadess[1].posY+juego.entidades.entidadess[1].magnitud*math.sin(juego.entidades.entidadess[1].angulo-ssangulo)*dt
-        if juego.entidades.entidadess[1].posY<0 then
-            juego.entidades.entidadess[1].posY=0
-        end
-        juego.entidades.entidadess[1].posX=juego.entidades.entidadess[1].posX+juego.entidades.entidadess[1].magnitud*math.cos(juego.entidades.entidadess[1].angulo-ssangulo)*dt
-        if juego.entidades.entidadess[1].posX<0 then
-            juego.entidades.entidadess[1].posX=0
-        end
-    elseif love.keyboard.isDown("a") then
-        juego.entidades.entidadess[1].angulo=juego.entidades.entidadess[1].angulo-math.rad(100)*dt
-    elseif love.keyboard.isDown("d") then
-        juego.entidades.entidadess[1].angulo=juego.entidades.entidadess[1].angulo+math.rad(100)*dt
-    end
-    
+    juego.procesarInput(dt)
+    juego.procesarEnt(dt)
+    juego.procesarCo()
 end
 
 function love.draw()
 pantallas[pantallaActual].dibujarCapas()
-juego.hud.dibujar(juego.ex,juego.ey)
---juego.hud.mapa()
+hud.vida(1)
+if love.keyboard.isDown("m") then
+    hud.dibujar()     
+    end
+
 --love.graphics.draw(ifr,0,0)
 end
