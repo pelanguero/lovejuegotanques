@@ -39,8 +39,7 @@ end
 function juego:dibujarCapas()
     juego.calcularexy()
     for i=1,table.maxn(juego.capas) do 
-        juego.capas[i].dibujar(juego.ex,juego.ey)
-        --juego.hud.dibujar(juego.ex,juego.ey)
+        juego.capas[i].dibujar(juego.ex,juego.ey)        
     end
     juego.entidades.dibujar(juego.ex,juego.ey)
     hud.pmx=juego.ex

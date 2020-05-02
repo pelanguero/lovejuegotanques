@@ -1,4 +1,4 @@
-hud={pmx,pmy,anchop,altop,tilles=nil,tiles="terrainTiles_default.png",smapa={},tablam=nil,barrav="",vida=3,imagen,px=1,py=1,barra="barra_v.png",quads={}}
+hud={capm,pmx,pmy,anchop,altop,tilles=nil,tiles="terrainTiles_default.png",smapa={},tablam=nil,barrav="",vida=3,imagen,px=1,py=1,barra="barra_v.png",quads={}}
 an,al,tx,ty=nil
 
 
@@ -16,9 +16,10 @@ function hud.cargarMapa()
  end
 function hud.calculapw()
 hud.anchop,hud.altop =  love.window.getMode( )
-hud.anchop = hud.anchop/3
+hud.anchop = hud.anchop/8
 
-an = (((hud.anchop*2)/100)/64) 
+an = (((hud.anchop*6)/100)/64) 
+alc= (((hud.altop)/100)/64)
 al = (((hud.altop)/100)/64)
 tx =  64*an
 ty = 64*al
@@ -33,29 +34,30 @@ hud.calcularQuads()
 hud.tilless=love.graphics.newImage(hud.tiles)
 hud.calculapw()
 
-set = {
-function hud.mapa()  
-  x,y=love.window.getMode( )
-  love.graphics.rectangle( "line",hud.anchop+(hud.pmx*an),hud.pmy*an, x*an, y*an )
-  p=1   
-  for  i=1,100 do 
-     for j=1, 100 do
-       love.graphics.draw(hud.tilless,hud.quads[hud.tablam.layers[1].data[p]],hud.anchop+(j-1)*tx,(i-1)*ty,0,an,al)   
-       hud.mapa()       
-       p=p+1
-     end 
-   end
+hud.capm=love.graphics.newCanvas(800,600)
+function hud.mapa()
+  hud.capm:renderTo(function ()  
+    x,y=love.window.getMode( ) 
+    p=1   
+    for  i=1,100 do 
+       for j=1, 100 do
+         love.graphics.draw(hud.tilless,hud.quads[hud.tablam.layers[1].data[p]],hud.anchop+(j-1)*tx,(i-1)*ty,0,an,al)               
+         p=p+1
+         love.graphics.rectangle( "line",hud.anchop+(hud.pmx*an),hud.pmy*alc, x*an, y*alc )
+       end 
+     end
+  end);
 end
-}
-x,y=love.window.getMode( )
-can = love.graphics.newCanvas(x,y,set )
 
-function hud.dibujar(x,y) 
+
+  function hud.dibujar() 
      
    love.graphics.draw(hud.imagen,hud.qbarra,1,1)
    if love.keyboard.isDown("m") then
-    love.graphics.draw(can[1],1,1,)
-     
+    hud.mapa()
+    love.graphics.draw(hud.capm)
+          
+      
     end
 end
 return hud
