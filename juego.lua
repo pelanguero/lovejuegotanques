@@ -139,7 +139,9 @@ end
 
 function juego.procesarInput(dt)
     --juego.hud=juego.modo
+    
     if love.keyboard.isDown("y") then
+      hud.modo=2  
     juego.cambiarModo()
     end    
     if love.keyboard.isDown("w") then

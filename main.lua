@@ -28,10 +28,10 @@ pantallas[pantallaActual].dibujarCapas()
 hud.vida(1)
 if love.keyboard.isDown("c") then
     hud.dibujar(1)     
---[[elseif love.keyboard.isDown("ñ")then
+end
+if love.keyboard.isDown("m")then
     hud.dibujar(2) 
-    end]]
+end
 end
 
 --love.graphics.draw(ifr,0,0)
-end
