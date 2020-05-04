@@ -14,6 +14,7 @@ ifr=love.graphics.newImage("terrainTiles_default.png")
 love.window.setTitle("Tanks")
 xd=0
 yd=0
+ 
 end
 
 function love.update(dt)
@@ -30,7 +31,7 @@ if love.keyboard.isDown("c") then
     hud.dibujar(1)     
 end
 if love.keyboard.isDown("m")then
-    hud.dibujar(2) 
+    hud.dibujar(2)
 end
 end
 

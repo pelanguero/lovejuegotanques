@@ -63,6 +63,9 @@ hud.calcularQuads()
 hud.tilless=love.graphics.newImage(hud.tiles)
 function hud.vida(nivel)
   love.graphics.draw(hud.imagen,hud.qbarra,1,1)
+  if hud.modo ==2 then
+    love.graphics.draw(hud.imagen,hud.qbarra,600,1)
+  end 
 end   
 
 
@@ -82,23 +85,7 @@ function hud.mapa(apa)
         end 
       end
     end);
-  elseif hud.modo==2 then
-    if apa == 2 then
-      hud.capm=love.graphics.newCanvas(600,600)
-      hud.anchop,hud.altop = hud.capm:getDimensions( )
-      hud.calculapw2()    
-      hud.capm:renderTo(function ()  
-        x,y= hud.capm:getDimensions( )
-        p=1   
-        for  i=1,100 do 
-          for j=1, 100 do
-            love.graphics.draw(hud.tilless,hud.quads[hud.tablam.layers[1].data[p]],hud.anchop+(j-1)*tx,(i-1)*ty,0,an,al)               
-            p=p+1
-            love.graphics.rectangle( "line",hud.anchop+bordeD,bordeR, x*an, y*alc)
-          end 
-        end
-      end);
-    else
+  elseif hud.modo==2 then     
       hud.capm=love.graphics.newCanvas(600,600)      
       hud.anchop,hud.altop = hud.capm:getDimensions( )
       hud.calculapw()    
@@ -112,16 +99,34 @@ function hud.mapa(apa)
             love.graphics.rectangle( "line",hud.anchop+bordeD,bordeR, x*an, y*alc )
           end 
         end
-      end);
+      end);    
+  end  
+end
+function hud.mapa2()
+  hud.capm=love.graphics.newCanvas(600,600)
+  hud.anchop,hud.altop = hud.capm:getDimensions( )
+  hud.calculapw2()    
+  hud.capm:renderTo(function ()  
+    x,y= hud.capm:getDimensions( )
+    p=1   
+    for  i=1,100 do 
+      for j=1, 100 do
+        love.graphics.draw(hud.tilless,hud.quads[hud.tablam.layers[1].data[p]],x+hud.anchop+(j-1)*tx,(i-1)*ty,0,an,al)               
+        p=p+1
+        love.graphics.rectangle( "line",hud.anchop+bordeD,bordeR,x+x*an, y*alc)
+      end 
     end
-  end
-  
+  end);
 end
 
 
 
   function hud.dibujar(apa)      
-   hud.mapa(apa)
+    if apa ==1 then
+   hud.mapa(apa)   
+  else
+    hud.mapa2()
+  end
    love.graphics.draw(hud.capm)         
       
     
