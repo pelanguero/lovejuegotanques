@@ -1,7 +1,6 @@
 --entidadess=jugadores, entidadesG=proyectiles,orbes,etc
 local entidades={entidadess={},entidadesG={},ancho=850,alto=850}
-
-
+hud = require("hud")
 
 function entidades.agregar(tipo,pX,pY,stri,ang,mag,danh,vid,power,tamanh)
 --entidad=posX,posY,strimagen,imagen,angulo,magnitud,danho,vida,powerUp,medX,medY,tamanho
@@ -32,7 +31,11 @@ end
 
 end
 function entidades.dibujar(eex,eey,canv)
+  
   --eex,eey esquina superior izquierda de la camara
+  if love.keyboard.isDown("m")then    
+    hud.dibujar(2)
+  end
   for i=1,#entidades.entidadess do
     if entidades.estaDentro(eex,eey,entidades.entidadess[i]) then
       if canv~=nil then

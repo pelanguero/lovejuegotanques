@@ -204,6 +204,12 @@ function juego.procesarInput(dt)
     end
     hud.pmx=juego.entidades.entidadess[1].posX
     hud.pmy=juego.entidades.entidadess[1].posY
+    if love.keyboard.isDown("m")then
+        hud.pmx2=juego.entidades.entidadess[2].posX
+        hud.pmy2=juego.entidades.entidadess[2].posY
+        hud.dibujar(2)
+        end
+    
 end
 return juego
 

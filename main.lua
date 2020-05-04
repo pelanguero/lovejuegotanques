@@ -26,9 +26,12 @@ end
 function love.draw()
 pantallas[pantallaActual].dibujarCapas()
 hud.vida(1)
-if love.keyboard.isDown("m") then
-    hud.dibujar()     
-    end
+if love.keyboard.isDown("c") then
+    hud.dibujar(1)     
+--[[elseif love.keyboard.isDown("ñ")then
+    hud.dibujar(2) 
+    end]]
+end
 
 --love.graphics.draw(ifr,0,0)
 end
