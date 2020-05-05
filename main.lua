@@ -18,6 +18,7 @@ function love.update(dt)
     --eventos de mouse para elegir la opcion en el menu
     juego.mododejuego.proupdate(dt)
     
+    
 end
 
 function love.draw()
