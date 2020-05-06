@@ -14,7 +14,7 @@ function hud.cargarMapa()
        hud.quads[a]=love.graphics.newQuad((j-1)*64,(i-1)*64 , 64, 64, 640, 256)
      end
    end 
- end
+end
 function hud.calculapw()
   hud.anchop = hud.anchop/8
   an = (((hud.anchop*6)/100)/64) 

@@ -1,6 +1,4 @@
 local jugadord={proyectiles=require "proyectil", strImagen="",angulo=0,tamanho=1,magnitud=100,imagen=nil,posX=0,posY=0,vida=100,powerUp="ninguno",fx=0,fy=0,medx=0,medy=0}
-
-
 function jugadord.new(rx,ry,tanq)
     jugadord.posX=rx
     jugadord.posY=ry
