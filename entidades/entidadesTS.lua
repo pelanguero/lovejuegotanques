@@ -7,6 +7,7 @@ local cbs=60
 local mcbs=cbs/2
 local calavera=love.graphics.newImage("//assets/skull.png")
 local particulas=love.graphics.newImage("//assets/explosion3.png")
+local caja=love.graphics.newImage("//assets/crateMetal.png")
 function entidadesTS.agregarEquipo()
 local equipo={}
 table.insert(entidadesTS.equipos, equipo)
@@ -23,9 +24,9 @@ end
 function entidadesTS.agregarPowerUp(pwx,pwy)
     local tipo=math.random(1,4)
     local pw={}
-    pw.x=pwx
-    pw.y=pwy
-    pw.vida=60
+    pw.posX=pwx
+    pw.posY=pwy
+    pw.vida=70
     pw.tipo=tipo
     table.insert( entidadesTS.powerUps,pw)
 end
@@ -137,6 +138,13 @@ function entidadesTS.actualizarProyectiles(dt)
             end    
         end
     end
+    for i=1,#entidadesTS.powerUps do
+        if entidadesTS.powerUps[i].vida<61 and entidadesTS.powerUps[i].vida>1 then
+            entidadesTS.powerUps[i].vida=entidadesTS.powerUps[i].vida-1*dt
+        elseif entidadesTS.powerUps[i].vida<1 then
+            entidadesTS.powerUps[i].vida=70
+        end
+    end
 end
 
 function entidadesTS.actualizarJugadores(dt)
@@ -183,6 +191,19 @@ function entidadesTS.detectarColision(dt)
         end
     end
     --jugadores v powerUPs
+    for i=1,#entidadesTS.jugadores do
+        for j=1,#entidadesTS.powerUps do
+            local corX=entidadesTS.jugadores[i].posX-mcbs
+            local corY=entidadesTS.jugadores[i].posY-mcbs
+            local sx=corX<entidadesTS.powerUps[j].posX and corX+cbs>entidadesTS.powerUps[j].posX
+            local sy=corY<entidadesTS.powerUps[j].posY and corY+cbs>entidadesTS.powerUps[j].posY
+            if sx and sy and entidadesTS.powerUps[j].vida>60 then
+                entidadesTS.procesarColPow(entidadesTS.powerUps[j],entidadesTS.jugadores[i])
+                entidadesTS.powerUps[j].vida=60
+            end
+        end
+    end
+
 end
 
 function entidadesTS.matarJugadores()
@@ -245,32 +266,44 @@ end
 
 function entidadesTS.dibujar(eex,eey,canv)
     --dibuja a los proyectiles
+    if canv~=nil then
+        love.graphics.setCanvas(canv)
+    end
     for i=1,#entidadesTS.proyectiles do
         if entidadesTS.estaDentro(eex,eey,entidadesTS.proyectiles[i]) then
-            if canv~=nil then
-                love.graphics.setCanvas(canv)
-            end
             local fx=entidadesTS.proyectiles[i].posX-eex
             local fy=entidadesTS.proyectiles[i].posY-eey
             love.graphics.draw(entidadesTS.proyectiles[i].imagen,fx,fy,entidadesTS.proyectiles[i].angulo,entidadesTS.proyectiles[i].tamanho,entidadesTS.proyectiles[i].tamanho,entidadesTS.proyectiles[i].medX,entidadesTS.proyectiles[i].medY,0,0)
             --dibuja la caja de colision
-            love.graphics.setCanvas()
         end
     
     end
+    
+    --dibuja los power Ups
+    for i=1,#entidadesTS.powerUps do
+        if entidadesTS.estaDentro(eex,eey,entidadesTS.powerUps[i]) then
+            local fx=entidadesTS.powerUps[i].posX-eex
+            local fy=entidadesTS.powerUps[i].posY-eey
+            if entidadesTS.powerUps[i].vida>61 then
+                love.graphics.draw(caja,fx,fy,0,1,1,14,14,0,0)
+            else
+                --love.graphics.setColor(1,1,0)
+                --math.rad(entidadesTS.powerUps[i].vida*60)
+                love.graphics.arc("fill",fx,fy,30,0,math.rad(entidadesTS.powerUps[i].vida*6))
+            end
+        end
+    end
+
     --dibuja a los jugadores
     for i=1,#entidadesTS.jugadores do
             if entidadesTS.estaDentro(eex,eey,entidadesTS.jugadores[i]) then
-                if canv~=nil then
-                    love.graphics.setCanvas(canv)
-                end
                 local fx=entidadesTS.jugadores[i].posX-eex
                 local fy=entidadesTS.jugadores[i].posY-eey
                 love.graphics.draw(entidadesTS.jugadores[i].imagen,fx,fy,entidadesTS.jugadores[i].angulo,entidadesTS.jugadores[i].tamanho,entidadesTS.jugadores[i].tamanho,entidadesTS.jugadores[i].medX,entidadesTS.jugadores[i].medY,0,0)
                 --dibuja la caja de colision
-                love.graphics.setCanvas()
             end
     end
+    love.graphics.setCanvas()
 end  
 
 return entidadesTS

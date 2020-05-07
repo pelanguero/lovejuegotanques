@@ -15,9 +15,9 @@ end
 function mapats.calcularPuntos()
     local anc=mapats.tablamapa.width*mapats.tablamapa.height
     for i=1,anc do
-    if mapats.tablamapa.layers[2].data[i]~=0 then
-    mapats.agregarPunto(i,mapats.tablamapa.layers[2].data[i])
-    end
+      if mapats.tablamapa.layers[2].data[i]~=0 then
+        mapats.agregarPunto(i,mapats.tablamapa.layers[2].data[i])
+      end
     end
 end
 

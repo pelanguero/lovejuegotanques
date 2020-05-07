@@ -14,11 +14,11 @@ function ts.new()
        if ts.mapa.puntos[i].val==1 then
          ts.entidades.agregarSpawn(ts.mapa.puntos[i].x,ts.mapa.puntos[i].y)
        else
-        ts.entidades.agregarSpawn(ts.mapa.puntos[i].x,ts.mapa.puntos[i].y)
+        ts.entidades.agregarPowerUp(ts.mapa.puntos[i].x,ts.mapa.puntos[i].y)
        end
     end
 
-    ts.entidades.agregarJugador(1,ts.entidades.spawns[1].x,ts.entidades.spawns[1].y,"nada",nil,0,300,20,100,"ninguno",21,23,1)
+    ts.entidades.agregarJugador(1,ts.entidades.spawns[4].x,ts.entidades.spawns[4].y,"nada",nil,0,300,20,100,"ninguno",21,23,1)
     ts.entidades.agregarJugador(2,ts.entidades.spawns[2].x,ts.entidades.spawns[2].y,"nada",nil,0,300,20,100,"ninguno",21,23,1)
 
 end
@@ -60,26 +60,29 @@ end
 
 end
 
+function ts.inputP(dt,jugador,avanzar,retroceder,izquierda,derecha,disparar,mina)
+    if love.keyboard.isDown(avanzar) then
+        ts.entidades.jugadores[jugador].posY=ts.entidades.jugadores[jugador].posY-ts.entidades.jugadores[jugador].magnitud*math.sin(ts.entidades.jugadores[jugador].angulo-ssangulo)*dt
+        ts.entidades.jugadores[jugador].posX=ts.entidades.jugadores[jugador].posX-ts.entidades.jugadores[jugador].magnitud*math.cos(ts.entidades.jugadores[jugador].angulo-ssangulo)*dt
+    elseif love.keyboard.isDown(retroceder) then
+        ts.entidades.jugadores[jugador].posY=ts.entidades.jugadores[jugador].posY+ts.entidades.jugadores[jugador].magnitud*math.sin(ts.entidades.jugadores[jugador].angulo-ssangulo)*dt
+        ts.entidades.jugadores[jugador].posX=ts.entidades.jugadores[jugador].posX+ts.entidades.jugadores[jugador].magnitud*math.cos(ts.entidades.jugadores[jugador].angulo-ssangulo)*dt
+    elseif love.keyboard.isDown(izquierda) then
+        ts.entidades.jugadores[jugador].angulo=ts.entidades.jugadores[jugador].angulo-math.rad(100)*dt
+    elseif love.keyboard.isDown(derecha) then
+        ts.entidades.jugadores[jugador].angulo=ts.entidades.jugadores[jugador].angulo+math.rad(100)*dt
+    end
+    if love.keyboard.isDown(disparar) then
+    ts.entidades.disparar(ts.entidades.jugadores[jugador])
+    end
+    if love.keyboard.isDown(mina) then
+        ts.entidades.plantarMina(ts.entidades.jugadores[jugador])
+    end
+end
 
 function ts.proupdate(dt)
-if love.keyboard.isDown("w") then
-    ts.entidades.jugadores[1].posY=ts.entidades.jugadores[1].posY-ts.entidades.jugadores[1].magnitud*math.sin(ts.entidades.jugadores[1].angulo-ssangulo)*dt
-    ts.entidades.jugadores[1].posX=ts.entidades.jugadores[1].posX-ts.entidades.jugadores[1].magnitud*math.cos(ts.entidades.jugadores[1].angulo-ssangulo)*dt
-elseif love.keyboard.isDown("s") then
-    ts.entidades.jugadores[1].posY=ts.entidades.jugadores[1].posY+ts.entidades.jugadores[1].magnitud*math.sin(ts.entidades.jugadores[1].angulo-ssangulo)*dt
-    ts.entidades.jugadores[1].posX=ts.entidades.jugadores[1].posX+ts.entidades.jugadores[1].magnitud*math.cos(ts.entidades.jugadores[1].angulo-ssangulo)*dt
-elseif love.keyboard.isDown("a") then
-    ts.entidades.jugadores[1].angulo=ts.entidades.jugadores[1].angulo-math.rad(100)*dt
-elseif love.keyboard.isDown("d") then
-    ts.entidades.jugadores[1].angulo=ts.entidades.jugadores[1].angulo+math.rad(100)*dt
-end
-if love.keyboard.isDown("q") then
-ts.entidades.disparar(ts.entidades.jugadores[1])
-end
-
-if love.keyboard.isDown("e") then
-    ts.entidades.plantarMina(ts.entidades.jugadores[1])
-end
+ts.inputP(dt,1,"w","s","a","d","q","e")
+ts.inputP(dt,2,"i","k","j","l","u","o")
 ts.corregirPosicion(ts.entidades.jugadores[1])
 ts.entidades.actualizarJugadores(dt)
 ts.entidades.actualizarProyectiles(dt)
