@@ -9,15 +9,17 @@ function ts.new()
     ts.mapa.new("../mapas/TS","//assets/terrainTiles_default.png")
     ancho=ts.mapa.tablamapa.width*64
     alto=ts.mapa.tablamapa.height*64
-    print(alto)
+    
     for i=1,#ts.mapa.puntos do 
        if ts.mapa.puntos[i].val==1 then
          ts.entidades.agregarSpawn(ts.mapa.puntos[i].x,ts.mapa.puntos[i].y)
+       else
+        ts.entidades.agregarSpawn(ts.mapa.puntos[i].x,ts.mapa.puntos[i].y)
        end
     end
 
-    ts.entidades.agregarJugador(3,ts.entidades.spawns[3].x,ts.entidades.spawns[3].y,"nada",nil,0,300,20,100,"ninguno",21,23,1)
-    ts.entidades.agregarJugador(2,ts.entidades.spawns[2].x,ts.entidades.spawns[2].y,"nada",nil,0,100,20,100,"ninguno",21,23,1)
+    ts.entidades.agregarJugador(1,ts.entidades.spawns[1].x,ts.entidades.spawns[1].y,"nada",nil,0,300,20,100,"ninguno",21,23,1)
+    ts.entidades.agregarJugador(2,ts.entidades.spawns[2].x,ts.entidades.spawns[2].y,"nada",nil,0,300,20,100,"ninguno",21,23,1)
 
 end
 
@@ -39,12 +41,11 @@ function ts.camara(equipo,jugador,canvasss)
     elseif ysy>alto-ts.alto then
         ysy=alto-ts.alto
     end
-    print(xsx)
     ts.mapa.dibujar(xsx,ysy,800,600,canvasss)
     ts.entidades.dibujar(xsx,ysy,canvasss)
     
 end
-
+--Mantiene a la entidad dentro de los limites del mapa
 function ts.corregirPosicion(entt)
 if entt.posX>ancho-entt.medX then
     entt.posX=ancho-entt.medX
@@ -75,11 +76,12 @@ end
 if love.keyboard.isDown("q") then
 ts.entidades.disparar(ts.entidades.jugadores[1])
 end
-if love.keyboard.isDown("u") then
-    ts.entidades.disparar(ts.entidades.jugadores[2])
-end
 
+if love.keyboard.isDown("e") then
+    ts.entidades.plantarMina(ts.entidades.jugadores[1])
+end
 ts.corregirPosicion(ts.entidades.jugadores[1])
+ts.entidades.actualizarJugadores(dt)
 ts.entidades.actualizarProyectiles(dt)
 ts.entidades.detectarColision(dt)
 end
