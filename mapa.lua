@@ -1,4 +1,4 @@
-local mapa={tablamapa=nil,tilex=0,tiley=0,tiles="terrainTiles_default.png",smapa={},quads={},tilles=nil,anchoo=0}
+mapa={tablamapa=nil,tilex=0,tiley=0,tiles="terrainTiles_default.png",smapa={},quads={},tilles=nil}
 
 function mapa.cargarMapa(ruta)
 mapa.tablamapa=require("mapadeprueba")
@@ -31,13 +31,15 @@ erer=mapa.tablamapa.layers[1].data[i]
 mapa.smapa[ix][iy]=mapa.tablamapa.layers[1].data[i]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
 end
 end
+function mapa.calcularpos(xx,yy)
+  
+end
 
 function mapa:new(prro)
   mapa.cargarMapa(prro)
   mapa.calcularQuads()
   mapa.cargarlocal()
   mapa.tilless=love.graphics.newImage(mapa.tiles)
-  mapa.anchoo=mapa.tablamapa.width*64
 end
 
 function mapa.dibujar(xd,yd)

@@ -1,38 +1,27 @@
 pantallaActual=1
-juego=require "juego"
+local juego=require "juego"
 pantallas={}
-hud=require"hud"
-pantallas[1]=0
-pantallas[2]=0
-juego.new()
+for i=1,2 do 
+pantallas[i]=0;
+end
+local ssangulo = math.rad(90)
+
 pantallas[1]=juego
 eventoss={}
 ifr=nil
 
 function love.load()
-ifr=love.graphics.newImage("terrainTiles_default.png")
-love.window.setTitle("Tanks")
-xd=0
-yd=0
- 
+    juego.new(1)
 end
 
 function love.update(dt)
     --eventos de mouse para elegir la opcion en el menu
-    juego.procesarInput(dt)
-    juego.procesarEnt(dt)
-    juego.procesarCo()
+    juego.mododejuego.proupdate(dt)
+    
+    
 end
 
 function love.draw()
 pantallas[pantallaActual].dibujarCapas()
-hud.vida(1)
-if love.keyboard.isDown("c") then
-    hud.dibujar(1)     
-end
-if love.keyboard.isDown("m")then
-    hud.dibujar(2)
-end
-end
-
 --love.graphics.draw(ifr,0,0)
+end
