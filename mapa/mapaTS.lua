@@ -15,9 +15,9 @@ end
 function mapats.calcularPuntos()
     local anc=mapats.tablamapa.width*mapats.tablamapa.height
     for i=1,anc do
-    if mapats.tablamapa.layers[2].data[i]~=0 then
-    mapats.agregarPunto(i,mapats.tablamapa.layers[2].data[i])
-    end
+      if mapats.tablamapa.layers[2].data[i]~=0 then
+        mapats.agregarPunto(i,mapats.tablamapa.layers[2].data[i])
+      end
     end
 end
 
@@ -48,7 +48,7 @@ function mapats.dibujar(xd,yd,anch,alt,canv)
     for i=1,salto do 
       for j=1,sancho do
         if mapats.quads[mapats.tablamapa.layers[1].data[subi]]~=nil then
-        love.graphics.draw(mapats.tilless,mapats.quads[mapats.tablamapa.layers[1].data[subi]],ofx+(j-1)*64,ofy+(i-1)*64)
+          love.graphics.draw(mapats.tilless,mapats.quads[mapats.tablamapa.layers[1].data[subi]],ofx+(j-1)*64,ofy+(i-1)*64)
         else
           love.graphics.draw(mapats.tilless,mapats.quads[mapats.tablamapa.layers[1].data[1]],ofx+(j-1)*64,ofy+(i-1)*64)
         end
