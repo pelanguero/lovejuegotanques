@@ -9,7 +9,7 @@ function entidadesTS.agregarEquipo()
 local equipo={}
 table.insert(entidadesTS.equipos, equipo)
 end
-
+hud =require"hud"
 
 function entidadesTS.agregarSpawn(spx,spy)
 local spawn={}
@@ -176,6 +176,7 @@ end
 
 
 function entidadesTS.dibujar(eex,eey,canv)
+    
 
     --dibuja a los jugadores
     for i=1,#entidadesTS.jugadores do
@@ -191,6 +192,7 @@ function entidadesTS.dibujar(eex,eey,canv)
             end
         
     end
+
     --dibuja a los proyectiles
     for i=1,#entidadesTS.proyectiles do
         if entidadesTS.estaDentro(eex,eey,entidadesTS.proyectiles[i]) then
@@ -204,6 +206,10 @@ function entidadesTS.dibujar(eex,eey,canv)
             love.graphics.setCanvas()
         end
     
+    end
+    ----------------------------------------------------------------------------
+    if love.keyboard.isDown("c") then
+        hud.dibujar(1,entidadesTS.jugadores[1],canv)
     end
 end    
 return entidadesTS

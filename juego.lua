@@ -8,7 +8,7 @@ function juego:new(mdj)
     juego.mododejuego=require("./modosdejuego/TEAMSLAYER")
     end
     juego.mododejuego.new()
-    
+    hud.new(juego.mododejuego.entidades.jugadores[1],"/assets/barra_v.png")
 end
 
 
