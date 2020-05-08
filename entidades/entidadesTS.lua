@@ -55,13 +55,7 @@ function entidadesTS.agregarJugador(nEqu,posX,posY,strimagen,imagen,angulo,magni
     ju.eqimpac=0
     ju.spawnear=true
     table.insert( entidadesTS.jugadores,ju)
-    print("jugadorAgregado")
-    --------
-    local hud = require("//hud")
-    if love.keyboard.isDown("x") then
-        hud.new(posX,posY,"//assets/barra_v.png")
-    end
-    
+    print("jugadorAgregado")   
 end
 
 

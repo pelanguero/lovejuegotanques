@@ -4,7 +4,7 @@ local ssangulo=math.rad(90)
 local ancho=0
 local alto=0
 
-
+hud =require"hud"
 function ts.new()
     ts.mapa.new("../mapas/TS","//assets/terrainTiles_default.png")
     ancho=ts.mapa.tablamapa.width*64
@@ -18,7 +18,7 @@ function ts.new()
 
     ts.entidades.agregarJugador(3,ts.entidades.spawns[3].x,ts.entidades.spawns[3].y,"nada",nil,0,300,20,100,"ninguno",21,23,1)
     ts.entidades.agregarJugador(2,ts.entidades.spawns[2].x,ts.entidades.spawns[2].y,"nada",nil,0,100,20,100,"ninguno",21,23,1)
-
+    hud.new(ts.entidades.jugadores[1],"//assets/terrainTiles_default.png")
 end
 
 function ts.dibujar()
@@ -58,11 +58,11 @@ elseif entt.posY<entt.medY then
 end
 
 end
-hud =require"hud"
+
 
 function ts.proupdate(dt)
     if love.keyboard.isDown("c") then
-        hud.dibujar()
+        hud.dibujar(1,ts.entidades.jugadores[1])
     end
 if love.keyboard.isDown("w") then
     ts.entidades.jugadores[1].posY=ts.entidades.jugadores[1].posY-ts.entidades.jugadores[1].magnitud*math.sin(ts.entidades.jugadores[1].angulo-ssangulo)*dt
