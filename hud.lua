@@ -1,4 +1,4 @@
-hud={modo=1,capm,caprec,anchop=800,altop=600,tilles=nil,tiles=nil,smapa={},tablam=nil,barrav="",vida=3,imagen,px=1,py=1,barra="./assets/barra_v.png",quads={}}
+hud={modo=1,capm,caprec,anchop=800,altop=600,tilles=nil,tiles=nil,smapa={},tablam=nil,barrav="",vida=100,imagen,imagen2,px=1,py=1,barra="./assets/barra_v.png",quads={}}
 
     hud.anchop = hud.anchop/8
     an = (((hud.anchop*6)/100)/64) 
@@ -19,20 +19,6 @@ function hud.cargarMapa()
     end 
  end   
 
- function hud.calculapw(pmx,pmy)    
-    x,y=hud.capm:getDimensions( )
-    if (hud.pmx*an)-((x*an)/2)< 0 then
-      bordeD = 0
-    else
-      bordeD = (hud.pmx*an)-((x*an)/2)
-    end
-    if hud.pmy*alc-((y*alc)/2) < 0 then
-      bordeR = 0
-    else
-     bordeR = hud.pmy*alc-((y*alc)/2)  
-    end
-  end
-
  function hud.cargarQuad()
     hud.cargarMapa()
     if hud.modo==2 then  
@@ -44,27 +30,65 @@ function hud.cargarMapa()
           p=1   
           for  i=1,hud.tablam.width do 
             for j=1, hud.tablam.height do
-              love.graphics.draw(hud.tilless,hud.quads[hud.tablam.layers[1].data[p]],hud.anchop+(j-1)*tx,(i-1)*ty,0,an,al)               
+              love.graphics.draw(hud.tilless,hud.quads[hud.tablam.layers[1].data[p]],(j-1)*tx,(i-1)*ty,0,an,al)               
               p=p+1             
             end 
           end
         end);                   
  end 
+ function hud.calculapw(pmx,pmy)        
+    if (hud.pmx*an)-((anchop*an)/2)< 0 then
+      bordeD = 0
+    else
+      bordeD = (hud.pmx*an)-((anchop*an)/2)
+    end
+    if hud.pmy*alc-((altop*alc)/2) < 0 then
+      bordeR = 0
+    else
+     bordeR = hud.pmy*alc-((altop*alc)/2)  
+    end
+  end
 
  function hud.rect(pmx,pmy) 
     hud.caprec=love.graphics.newCanvas(anchop,altop)    
     hud.calculapw(pmx,pmy)      
-    hud.capm:renderTo(function ()
+    hud.caprec:renderTo(function ()
         love.graphics.rectangle( "line",bordeD,bordeR, x*an, y*alc )
                     end);
  end
+function hud.vida(act)--numero del araque 
+    hud.imagen=love.graphics.newImage(hud.barra)
+    hud.vida = hud.vida-act
+    hud.vida = hud.vida - ((hud.vida)%10)
+    hud.py=(45*(hud.vida))
+    hud.qbarra=love.graphics.newQuad(hud.px,hud.py,197,45,197,450)       
+end 
+--[[function hud.vida2(act)--numero del araque 
+    hud.imagen=love.graphics.newImage(hud.barra)
+    hud.vida2 = hud.vida2-act
+    hud.vida2 = hud.vida2 - (hud.vida2)%10)
+    hud.py=45*(hud.vida2)
+    hud.qbarra2=love.graphics.newQuad(hud.px,hud.py,197,45,197,450)    
+       
+    
+end ]]
+if modo == 1 then
+    love.graphics.draw(hud.imagen,hud.qbarra,1,1)
+elseif modo == 2 then
+    love.graphics.draw(hud.imagen,hud.qbarra,1,1)
+    love.graphics.draw(hud.imagen2,hud.qbarra,600,1)
+end
+
 
  function hud.new(pmx,pmy,til)
     hud.tiles = til
     hud.rect(pmx,pmy)    
     hud.rect(pmx,pmy)
+    mapa.tilless=love.graphics.newImage(mapa.tiles)
  end
  function hud.dibujar()
+    hud.cargarQuad()
     love.graphics.draw(hud.capm)
     love.graphics.draw(hud.caprec)    
  end
+return hud

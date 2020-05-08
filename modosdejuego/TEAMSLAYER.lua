@@ -58,9 +58,12 @@ elseif entt.posY<entt.medY then
 end
 
 end
-
+hud =require"hud"
 
 function ts.proupdate(dt)
+    if love.keyboard.isDown("c") then
+        hud.dibujar()
+    end
 if love.keyboard.isDown("w") then
     ts.entidades.jugadores[1].posY=ts.entidades.jugadores[1].posY-ts.entidades.jugadores[1].magnitud*math.sin(ts.entidades.jugadores[1].angulo-ssangulo)*dt
     ts.entidades.jugadores[1].posX=ts.entidades.jugadores[1].posX-ts.entidades.jugadores[1].magnitud*math.cos(ts.entidades.jugadores[1].angulo-ssangulo)*dt

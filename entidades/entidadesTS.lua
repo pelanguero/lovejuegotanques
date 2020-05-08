@@ -10,6 +10,7 @@ local equipo={}
 table.insert(entidadesTS.equipos, equipo)
 end
 
+
 function entidadesTS.agregarSpawn(spx,spy)
 local spawn={}
 spawn.x=spx
@@ -55,6 +56,12 @@ function entidadesTS.agregarJugador(nEqu,posX,posY,strimagen,imagen,angulo,magni
     ju.spawnear=true
     table.insert( entidadesTS.jugadores,ju)
     print("jugadorAgregado")
+    --------
+    local hud = require("//hud")
+    if love.keyboard.isDown("x") then
+        hud.new(posX,posY,"//assets/barra_v.png")
+    end
+    
 end
 
 
