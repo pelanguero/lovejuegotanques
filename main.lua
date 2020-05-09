@@ -11,7 +11,7 @@ eventoss={}
 ifr=nil
 
 function love.load()
-    juego.new(1)
+    juego.new(2)
 end
 
 function love.update(dt)

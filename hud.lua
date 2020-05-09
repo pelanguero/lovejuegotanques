@@ -49,7 +49,7 @@ function hud.calculapw(pmx,pmy)
     else
      bordeR = hud.pmy*alc-((altop*alc)/2)  
     end
-  end
+end
 
 function hud.rect(pmx,pmy) 
     hud.caprec=love.graphics.newCanvas(anchop,altop)    
