@@ -17,7 +17,11 @@ function ts.new()
         ts.entidades.agregarPowerUp(ts.mapa.puntos[i].x,ts.mapa.puntos[i].y)
        end
     end
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 844439de3aab167ac35c781c966e7758d75d4b8c
     ts.entidades.agregarJugador(1,ts.entidades.spawns[4].x,ts.entidades.spawns[4].y,"nada",nil,0,300,20,100,"ninguno",21,23,1)
     ts.entidades.agregarJugador(2,ts.entidades.spawns[2].x,ts.entidades.spawns[2].y,"nada",nil,0,300,20,100,"ninguno",21,23,1)
 
