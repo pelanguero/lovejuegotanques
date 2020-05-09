@@ -11,7 +11,9 @@ eventoss={}
 ifr=nil
 
 function love.load()
-    juego.new(1)
+    love.window.setTitle("Tanks")
+    love.window.setMode(1200, 600,{resizable=false,vsync=true})
+    juego.new(2)
 end
 
 function love.update(dt)

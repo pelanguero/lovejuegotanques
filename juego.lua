@@ -1,11 +1,14 @@
 
 --terreno, jugador
-local juego={mododejuego=require("./modosdejuego/TEAMSLAYER")}
+--require("./modosdejuego/TEAMSLAYER")
+local juego={mododejuego=nil}
 
-function juego:new(mdj)
+function juego.new(mdj)
     -- body
     if mdj==1 then
-    juego.mododejuego=require("./modosdejuego/TEAMSLAYER")
+        juego.mododejuego=require("./modosdejuego/TEAMSLAYER")
+    elseif mdj==2 then
+        juego.mododejuego=require("./modosdejuego/CTF")
     end
     juego.mododejuego.new()
 end

@@ -22,8 +22,15 @@ function mapats.calcularPuntos()
 end
 
 function mapats.agregarPunto(xy,valor)
-    local cally=math.floor(xy/mapats.tablamapa.width)+1
-    local callx=xy-mapats.tablamapa.width*(cally-1)
+  local cally=0
+  local callx=0
+    if math.floor(xy/mapats.tablamapa.width)==xy/mapats.tablamapa.width then
+      cally=xy/mapats.tablamapa.width
+      callx=mapats.tablamapa.width
+    else
+      cally=math.floor(xy/mapats.tablamapa.width)+1
+      callx=xy-mapats.tablamapa.width*(cally-1)
+    end 
     local add={}
     add.x=callx*64-32
     add.y=cally*64-32
