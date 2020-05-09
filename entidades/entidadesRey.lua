@@ -193,7 +193,7 @@ function entidadesRey.es(entt)
     end    
 end
 
-function entidadesRey.espColina(dt)    
+function entidadesRey.espColina(dt)
     local retorno=false
     local dentroArea={}
     local eqpo=0
