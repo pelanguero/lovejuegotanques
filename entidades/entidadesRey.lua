@@ -11,6 +11,7 @@ local caja=love.graphics.newImage("//assets/crateMetal.png")
 function entidadesRey.agregarEquipo()
 local equipo={}
 table.insert(entidadesRey.equipos, equipo)
+hud=require("hud")
 end
 function entidadesRey.agregarColina(px,py)
     local colina={}
@@ -212,8 +213,7 @@ function entidadesRey.espColina(dt)
             end 
         end
         entidadesRey.puntuaciones[dentroArea[1].equipo].puntos= entidadesRey.puntuaciones[dentroArea[1].equipo].puntos+1*dt  
-    end
-    
+    end    
 
     return retorno
 end
@@ -359,6 +359,9 @@ function entidadesRey.dibujar(eex,eey,canv)
     
     love.graphics.print(tostring(entidadesRey.puntuaciones[1].puntos),50,500)
     love.graphics.print(tostring(entidadesRey.puntuaciones[2].puntos),50,550)
+    
+    hud.dibujar(entidadesRey.jugadores[1])
+
     love.graphics.setCanvas()
 end  
 
