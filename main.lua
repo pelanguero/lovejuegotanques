@@ -13,7 +13,7 @@ ifr=nil
 function love.load()
     love.window.setTitle("Tanks")
     love.window.setMode(1200, 600,{resizable=false,vsync=true})
-    juego.new(2)
+    juego.new(4)
 end
 
 function love.update(dt)
