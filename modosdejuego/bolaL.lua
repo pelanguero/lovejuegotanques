@@ -50,16 +50,16 @@ function bol.camara(equipo,jugador,canvasss)
 end
 --Mantiene a la entidad dentro de los limites del mapa
 function bol.corregirPosicion(entt)
-if entt.posX>ancho-entt.medX then
-    entt.posX=ancho-entt.medX
-elseif entt.posX<entt.medX then
-    entt.posX=entt.medX
-end
-if entt.posY>ancho-entt.medY then
-    entt.posY=ancho-entt.medY
-elseif entt.posY<entt.medY then
-    entt.posY=entt.medY
-end
+    if entt.posX>ancho-entt.medX then
+        entt.posX=ancho-entt.medX
+    elseif entt.posX<entt.medX then
+        entt.posX=entt.medX
+    end
+    if entt.posY>ancho-entt.medY then
+        entt.posY=ancho-entt.medY
+    elseif entt.posY<entt.medY then
+        entt.posY=entt.medY
+    end
 
 end
 
@@ -84,12 +84,12 @@ function bol.inputP(dt,jugador,avanzar,retroceder,izquierda,derecha,disparar,min
 end
 
 function bol.proupdate(dt)
-bol.inputP(dt,1,"w","s","a","d","q","e")
-bol.inputP(dt,2,"i","k","j","l","u","o")
-bol.corregirPosicion(bol.entidades.jugadores[1])
-bol.entidades.actualizarJugadores(dt)
-bol.entidades.actualizarProyectiles(dt)
-bol.entidades.detectarColision(dt)
+    bol.inputP(dt,1,"w","s","a","d","q","e")
+    bol.inputP(dt,2,"i","k","j","l","u","o")
+    bol.corregirPosicion(bol.entidades.jugadores[1])
+    bol.entidades.actualizarJugadores(dt)
+    bol.entidades.actualizarProyectiles(dt)
+    bol.entidades.detectarColision(dt)
 end
 
 return bol

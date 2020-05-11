@@ -1,4 +1,4 @@
-local entidadesBol={jugadores={},proyectiles={},powerUps={},spawns={},banderas={},ancho=850,alto=850,puntuaciones={}}
+local entidadesBol={bolal={},jugadores={},proyectiles={},powerUps={},spawns={},banderas={},ancho=850,alto=850,puntuaciones={}}
 local tanques ={"//assets/tanques/tank_dark.png","//assets/tanques/tank_red.png","//assets/tanques/tank_green.png"}
 local proyectiles={"//assets/proyectiles/bulletDark1_outline.png","//assets/proyectiles/bulletRed1_outline.png","//assets/proyectiles/bulletGreen1_outline.png"}
 local mina=love.graphics.newImage("//assets/mina.png")
@@ -15,14 +15,14 @@ table.insert(entidadesBol.equipos, equipo)
 end
 
 function entidadesBol.agregarSpawn(spx,spy)
-local spawn={}
-spawn.x=spx
-spawn.y=spy
-table.insert( entidadesBol.spawns,spawn )
+    local spawn={}
+    spawn.x=spx
+    spawn.y=spy
+    table.insert( entidadesBol.spawns,spawn )
 end
 
-function entidadesBol.agregarBandera(spx,spy)
-    local bandera={}
+function entidadesBol.agregarBola(spx,spy)
+    local bola={}
     bandera.x=spx
     bandera.y=spy
     bandera.posX=spx
@@ -30,7 +30,7 @@ function entidadesBol.agregarBandera(spx,spy)
     bandera.vida=12
     bandera.is=true
     bandera.jugador=0
-    table.insert( entidadesBol.banderas,spawn)
+    table.insert( entidadesBol.bola,bola)
 end
 
 function entidadesBol.resetBandera(band)
