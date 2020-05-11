@@ -1,4 +1,4 @@
-local entidadesBol={bolal={},jugadores={},proyectiles={},powerUps={},spawns={},banderas={},ancho=850,alto=850,puntuaciones={}}
+local entidadesBol={jugadores={},proyectiles={},powerUps={},spawns={},banderas={},ancho=850,alto=850,puntuaciones={}}
 local tanques ={"//assets/tanques/tank_dark.png","//assets/tanques/tank_red.png","//assets/tanques/tank_green.png"}
 local proyectiles={"//assets/proyectiles/bulletDark1_outline.png","//assets/proyectiles/bulletRed1_outline.png","//assets/proyectiles/bulletGreen1_outline.png"}
 local mina=love.graphics.newImage("//assets/mina.png")
@@ -15,14 +15,14 @@ table.insert(entidadesBol.equipos, equipo)
 end
 
 function entidadesBol.agregarSpawn(spx,spy)
-    local spawn={}
-    spawn.x=spx
-    spawn.y=spy
-    table.insert( entidadesBol.spawns,spawn )
+local spawn={}
+spawn.x=spx
+spawn.y=spy
+table.insert( entidadesBol.spawns,spawn )
 end
 
-function entidadesBol.agregarBola(spx,spy)
-    local bola={}
+function entidadesBol.agregarBandera(spx,spy)
+    local bandera={}
     bandera.x=spx
     bandera.y=spy
     bandera.posX=spx
@@ -30,7 +30,9 @@ function entidadesBol.agregarBola(spx,spy)
     bandera.vida=12
     bandera.is=true
     bandera.jugador=0
-    table.insert( entidadesBol.bola,bola)
+    bandera.equipo=#entidadesBol.banderas+1
+    print(bandera.equipo)
+    table.insert(entidadesBol.banderas,bandera)
 end
 
 function entidadesBol.resetBandera(band)
@@ -38,7 +40,7 @@ function entidadesBol.resetBandera(band)
     band.posX=band.x
     band.posY=band.y
     band.is=true
-    bandera.vida=12
+    band.vida=12
 end    
 
 --tipo:1=tanque de energia plus,2=Sobreescudo,3=modificador de minas,4=velocidad plus
@@ -169,6 +171,18 @@ function entidadesBol.actualizarProyectiles(dt)
             entidadesBol.powerUps[i].vida=70
         end
     end
+
+    for i=1,#entidadesBol.banderas do
+        if entidadesBol.banderas[i].vida<0 then
+            entidadesBol.resetBandera(entidadesBol.banderas[i])
+        else
+            local lol= entidadesBol.banderas[i].posX~=entidadesBol.banderas[i].x and entidadesBol.banderas[i].posY~=entidadesBol.banderas[i].y
+            if entidadesBol.banderas[i].is and lol then
+                entidadesBol.banderas[i].vida=entidadesBol.banderas[i].vida-1*dt
+            end
+        end
+    end
+
 end
 
 function entidadesBol.actualizarJugadores(dt)
@@ -177,6 +191,9 @@ function entidadesBol.actualizarJugadores(dt)
         entidadesBol.jugadores[i].energia=entidadesBol.jugadores[i].energia+entidadesBol.jugadores[i].ratio*dt
         if entidadesBol.jugadores[i].energia>entidadesBol.jugadores[i].limite then
             entidadesBol.jugadores[i].energia=entidadesBol.jugadores[i].limite
+        end
+        if entidadesBol.jugadores[i].banderaa then
+            entidadesBol.puntuaciones[entidadesBol.jugadores[i].equipo].puntos=entidadesBol.puntuaciones[entidadesBol.jugadores[i].equipo].puntos+1*dt
         end
     end
 end
@@ -229,24 +246,26 @@ function entidadesBol.detectarColision(dt)
 
     --jugadores v banderas
 
-    for i=1,#entidadesBol.jugadores do
-        for j=1,#entidadesBol.banderas do
+    for j=1,#entidadesBol.banderas do
+        for i=1,#entidadesBol.jugadores do
             local corX=entidadesBol.banderas[j].posX-mcbs
             local corY=entidadesBol.banderas[j].posY-mcbs
-            local sx=corX<entidadesBol.jugadores[i].posX and corX+cbs>entidadesBol.jugadores[i].posX
-            local sy=corY<entidadesBol.jugadores[i].posY and corY+cbs>entidadesBol.jugadores[j].posY
-            local cerd=sx and sy
-            local ord= j~=entidadesBol.jugadores[i].equipo and entidadesBol.banderas[j].is
-            local orr= entidadesBol.banderas[j].posX==entidadesBol.banderas[j].x and entidadesBol.banderas[j].posY==entidadesBol.banderas[j].y
-            if cerd and ord  then 
+            local scorX=entidadesBol.banderas[j].x-mcbs
+            local scorY=entidadesBol.banderas[j].y-mcbs
+            local cerd=entidadesBol.estaDentro(corX,corY,entidadesBol.jugadores[i],cbs,cbs)
+            --entidadesBol.banderas[j].equipo~=entidadesBol.jugadores[i].equipo and
+            local ord=entidadesBol.banderas[j].is
+            local orr= entidadesBol.estaDentro(scorX,scorY,entidadesBol.jugadores[i],cbs,cbs)
+            if cerd and ord then 
                 entidadesBol.banderas[j].is=false
                 entidadesBol.jugadores[i].banderaa=true
-                entidadesBol.jugadores[i].band=j
-            elseif cerd and entidadesBol.jugadores[i].banderaa and orr then
-                entidadesBol.puntos[entidadesBol.jugadores[i].equipo]=entidadesBol.puntos[entidadesBol.jugadores[i].equipo]+1
-                entidadesBol.resetBandera(entidadesBol.banderas[entidadesBol.jugadores[i].band])
-                entidadesBol.jugadores[i].banderaa=false
-                entidadesBol.jugadores[i].band=0
+                entidadesBol.jugadores[i].band=entidadesBol.banderas[j].equipo
+                print("bandera tomada")
+            --elseif orr and entidadesBol.jugadores[i].banderaa and entidadesBol.banderas[j].equipo==entidadesBol.jugadores[i].equipo  then
+                --entidadesBol.puntuaciones[entidadesBol.jugadores[i].equipo].puntos=entidadesBol.puntuaciones[entidadesBol.jugadores[i].equipo].puntos+1
+                --entidadesBol.resetBandera(entidadesBol.banderas[entidadesBol.jugadores[i].band])
+                --entidadesBol.jugadores[i].banderaa=false
+                --entidadesBol.jugadores[i].band=0
             end
         end
     end
@@ -258,6 +277,11 @@ end
 function entidadesBol.matarJugadores()
     for i=1,#entidadesBol.jugadores do
         if entidadesBol.jugadores[i].vida<1 then
+            if entidadesBol.jugadores[i].banderaa then
+            entidadesBol.banderas[entidadesBol.jugadores[i].band].posX=entidadesBol.jugadores[i].posX
+            entidadesBol.banderas[entidadesBol.jugadores[i].band].posY=entidadesBol.jugadores[i].posY
+            entidadesBol.banderas[entidadesBol.jugadores[i].band].is=true
+            end
             if entidadesBol.jugadores[i].spawnear then
             entidadesBol.spawnearJugadores(entidadesBol.jugadores[i])
             else
@@ -304,6 +328,7 @@ end
 function entidadesBol.spawnearJugadores(ent)
     ent.posX=entidadesBol.spawns[ent.equipo].x
     ent.posY=entidadesBol.spawns[ent.equipo].y
+    ent.banderaa=false
     ent.energia=100
     ent.limite=100
     ent.vida=100
@@ -333,24 +358,25 @@ function entidadesBol.dibujar(eex,eey,canv,xa,ya)
             local fx=entidadesBol.powerUps[i].posX-eex
             local fy=entidadesBol.powerUps[i].posY-eey
             if entidadesBol.powerUps[i].vida>61 then
-                love.graphics.draw(cajam,fx,fy,0,1,1,14,14,0,0)
+                love.graphics.draw(caja,fx,fy,0,1,1,14,14,0,0)
             else
-                --love.graphics.setColor(1,1,0)
+                love.graphics.setColor(0,255,0)
                 --math.rad(entidadesBol.powerUps[i].vida*60)
                 love.graphics.arc("fill",fx,fy,30,0,math.rad(entidadesBol.powerUps[i].vida*6))
+                love.graphics.setColor(255,255,255)
             end
         end
     end
 
     --dibuja banderas
     for i=1,#entidadesBol.banderas do
-        --if #entidadesBol.banderas[i].is then
-            --if entidadesBol.estaDentro(eex,eey,entidadesBol.banderas[i],xa,ya) then
+        if entidadesBol.banderas[i].is then
+            if entidadesBol.estaDentro(eex,eey,entidadesBol.banderas[i],xa,ya) then
                 local fx=entidadesBol.banderas[i].posX-eex
                 local fy=entidadesBol.banderas[i].posY-eey  
                 love.graphics.draw(cajam,fx,fy,0,1,1,14,14,0,0)
-            --end
-        --end
+            end
+        end
     end
 
     --dibuja a los jugadores
@@ -362,6 +388,10 @@ function entidadesBol.dibujar(eex,eey,canv,xa,ya)
                 --dibuja la caja de colision
             end
     end
+
+    love.graphics.print(tostring(entidadesBol.puntuaciones[1].puntos),50,500)
+    love.graphics.print(tostring(entidadesBol.puntuaciones[2].puntos),50,550)
+
     love.graphics.setCanvas()
 end  
 
