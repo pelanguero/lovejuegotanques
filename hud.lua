@@ -1,4 +1,4 @@
-hud={modo=1,capm,caprec,anchop=800,altop=600,tilles=nil,tiles=nil,smapa={},tablam=nil,barrav="",vida=100,imagen,imagen2,px=1,py=1,barra="/assets/barra_v.png",quads={}}
+local hud={modo=1,capm,caprec,anchop=800,altop=600,tilles=nil,tiles=nil,smapa={},tablam=nil,barrav="",vida=100,imagen,imagen2,px=1,py=1,barra="/assets/barra_v.png",quads={}}
 hud.anchop = hud.anchop/8
 local an = (((hud.anchop*6)/100)/64) 
 local alc= (((hud.altop)/100)/64)
