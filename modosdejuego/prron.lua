@@ -13,7 +13,7 @@ function  prron.new(pmapa)
     local subcanvas=love.graphics.newCanvas(ancho,alto)
     pmapa.dibujar(0,0,ancho,alto,subcanvas)
     prron.drwmapa=love.graphics.newImage(subcanvas:newImageData())
-
+    
 end
 
 function prron.dibujar(xx,yy)
