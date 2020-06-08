@@ -66,15 +66,13 @@ end
 
 function bolaL.inputP(dt,jugador,avanzar,retroceder,izquierda,derecha,disparar,mina)
     if love.keyboard.isDown(avanzar) then
-        bolaL.entidades.jugadores[jugador].posY=bolaL.entidades.jugadores[jugador].posY-bolaL.entidades.jugadores[jugador].magnitud*math.sin(bolaL.entidades.jugadores[jugador].angulo-ssangulo)*dt
-        bolaL.entidades.jugadores[jugador].posX=bolaL.entidades.jugadores[jugador].posX-bolaL.entidades.jugadores[jugador].magnitud*math.cos(bolaL.entidades.jugadores[jugador].angulo-ssangulo)*dt
+        bolaL.entidades.jugadores[jugador].posY=bolaL.entidades.jugadores[jugador].posY-bolaL.entidades.jugadores[jugador].magnitud*dt
     elseif love.keyboard.isDown(retroceder) then
-        bolaL.entidades.jugadores[jugador].posY=bolaL.entidades.jugadores[jugador].posY+bolaL.entidades.jugadores[jugador].magnitud*math.sin(bolaL.entidades.jugadores[jugador].angulo-ssangulo)*dt
-        bolaL.entidades.jugadores[jugador].posX=bolaL.entidades.jugadores[jugador].posX+bolaL.entidades.jugadores[jugador].magnitud*math.cos(bolaL.entidades.jugadores[jugador].angulo-ssangulo)*dt
+        bolaL.entidades.jugadores[jugador].posY=bolaL.entidades.jugadores[jugador].posY+bolaL.entidades.jugadores[jugador].magnitud*dt
     elseif love.keyboard.isDown(izquierda) then
-        bolaL.entidades.jugadores[jugador].angulo=bolaL.entidades.jugadores[jugador].angulo-math.rad(100)*dt
+        bolaL.entidades.jugadores[jugador].posX=bolaL.entidades.jugadores[jugador].posX-bolaL.entidades.jugadores[jugador].magnitud*dt
     elseif love.keyboard.isDown(derecha) then
-        bolaL.entidades.jugadores[jugador].angulo=bolaL.entidades.jugadores[jugador].angulo+math.rad(100)*dt
+        bolaL.entidades.jugadores[jugador].posX=bolaL.entidades.jugadores[jugador].posX+bolaL.entidades.jugadores[jugador].magnitud*dt
     end
     if love.keyboard.isDown(disparar) then
     bolaL.entidades.disparar(bolaL.entidades.jugadores[jugador])
@@ -82,11 +80,37 @@ function bolaL.inputP(dt,jugador,avanzar,retroceder,izquierda,derecha,disparar,m
     if love.keyboard.isDown(mina) then
         bolaL.entidades.plantarMina(bolaL.entidades.jugadores[jugador])
     end
+    local ryt= love.mouse.getY()-bolaL.entidades.jugadores[jugador].rposY
+    local rxt= love.mouse.getX()-bolaL.entidades.jugadores[jugador].rposX
+    bolaL.entidades.jugadores[jugador].angulo=math.atan2(ryt,rxt)-ssangulo
 end
 
-function bolaL.proupdate(dt)
+function bolaL.inputPd(dt,jugador,avanzar,retroceder,izquierda,derecha,disparar,mina,joy)
+    if joy:getAxis(2)<0 then
+        bolaL.entidades.jugadores[jugador].posY=bolaL.entidades.jugadores[jugador].posY-bolaL.entidades.jugadores[jugador].magnitud*dt
+    elseif joy:getAxis(2)>0 then
+        bolaL.entidades.jugadores[jugador].posY=bolaL.entidades.jugadores[jugador].posY+bolaL.entidades.jugadores[jugador].magnitud*dt
+    elseif joy:getAxis(1)<0 then
+        bolaL.entidades.jugadores[jugador].posX=bolaL.entidades.jugadores[jugador].posX-bolaL.entidades.jugadores[jugador].magnitud*dt
+    elseif joy:getAxis(1)>0 then
+        bolaL.entidades.jugadores[jugador].posX=bolaL.entidades.jugadores[jugador].posX+bolaL.entidades.jugadores[jugador].magnitud*dt
+    end
+    if joy:isDown(8) then
+    bolaL.entidades.disparar(bolaL.entidades.jugadores[jugador])
+    end
+    if joy:isDown(7) then
+        bolaL.entidades.plantarMina(bolaL.entidades.jugadores[jugador])
+    end
+    local ryt= love.mouse.getY()-bolaL.entidades.jugadores[jugador].rposY
+    local rxt= love.mouse.getX()-bolaL.entidades.jugadores[jugador].rposX
+    if joy:getAxis(3)~=0 and joy:getAxis(4)~=0 then
+    bolaL.entidades.jugadores[jugador].angulo=math.atan2(joy:getAxis(3)*1000,joy:getAxis(4)*1000)-ssangulo
+    end
+end
+
+function bolaL.proupdate(dt,joy)
 bolaL.inputP(dt,1,"w","s","a","d","q","e")
-bolaL.inputP(dt,2,"i","k","j","l","u","o")
+bolaL.inputPd(dt,2,"i","k","j","l","u","o",joy)
 bolaL.corregirPosicion(bolaL.entidades.jugadores[1])
 bolaL.entidades.actualizarJugadores(dt)
 bolaL.entidades.actualizarProyectiles(dt)

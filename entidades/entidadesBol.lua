@@ -66,6 +66,8 @@ function entidadesBol.agregarJugador(nEqu,posX,posY,strimagen,imagen,angulo,magn
     ju.equipo=nEqu
     ju.posX=posX
     ju.posY=posY
+    ju.rposX=0;
+    ju.rposY=0;
     ju.strimagen=tanques[nEqu]
     ju.imagen=love.graphics.newImage(ju.strimagen)
     ju.angulo=angulo
@@ -382,9 +384,9 @@ function entidadesBol.dibujar(eex,eey,canv,xa,ya)
     --dibuja a los jugadores
     for i=1,#entidadesBol.jugadores do
             if entidadesBol.estaDentro(eex,eey,entidadesBol.jugadores[i],xa,ya) then
-                local fx=entidadesBol.jugadores[i].posX-eex
-                local fy=entidadesBol.jugadores[i].posY-eey
-                love.graphics.draw(entidadesBol.jugadores[i].imagen,fx,fy,entidadesBol.jugadores[i].angulo,entidadesBol.jugadores[i].tamanho,entidadesBol.jugadores[i].tamanho,entidadesBol.jugadores[i].medX,entidadesBol.jugadores[i].medY,0,0)
+                entidadesBol.jugadores[i].rposX=entidadesBol.jugadores[i].posX-eex
+                entidadesBol.jugadores[i].rposY=entidadesBol.jugadores[i].posY-eey
+                love.graphics.draw(entidadesBol.jugadores[i].imagen,entidadesBol.jugadores[i].rposX,entidadesBol.jugadores[i].rposY,entidadesBol.jugadores[i].angulo,entidadesBol.jugadores[i].tamanho,entidadesBol.jugadores[i].tamanho,entidadesBol.jugadores[i].medX,entidadesBol.jugadores[i].medY,0,0)
                 --dibuja la caja de colision
             end
     end
