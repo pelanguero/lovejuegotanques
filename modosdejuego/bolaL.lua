@@ -3,10 +3,26 @@ local bolaL={temud=require "../modosdejuego/prron",entidades=require "../entidad
 local ssangulo=math.rad(90)
 local ancho=0
 local alto=0
-
+local inputUno={}
+local inputDos={}
 
 function bolaL.new()
     bolaL.mapa.new("../mapas/bola","//assets/terrainTiles_default.png")
+    
+    inputUno.adelante="w"
+    inputUno.atras="s"
+    inputUno.derecha="d"
+    inputUno.izquierda="a"
+    inputUno.disparar="q"
+    inputUno.mina="e"
+    inputUno.joystick=false
+    inputDos.adelante="i"
+    inputDos.atras="k"
+    inputDos.derecha="l"
+    inputDos.izquierda="j"
+    inputDos.joystick=false
+    inputDos.disparar="u"
+    inputDos.mina="o"
     ancho=bolaL.mapa.tablamapa.width*64
     alto=bolaL.mapa.tablamapa.height*64
     bolaL.temud.new(bolaL.mapa)
@@ -19,9 +35,8 @@ function bolaL.new()
         bolaL.entidades.agregarBandera(bolaL.mapa.puntos[i].x,bolaL.mapa.puntos[i].y)
        end
     end
-
-    bolaL.entidades.agregarJugador(1,bolaL.entidades.spawns[1].x,bolaL.entidades.spawns[1].y,"nada",nil,0,300,20,100,"ninguno",21,23,1)
-    bolaL.entidades.agregarJugador(2,bolaL.entidades.spawns[2].x,bolaL.entidades.spawns[2].y,"nada",nil,0,300,20,100,"ninguno",21,23,1)
+    bolaL.entidades.agregarJugador(1,bolaL.entidades.spawns[1].x,bolaL.entidades.spawns[1].y,"nada",nil,0,300,20,100,"ninguno",21,23,1,inputUno)
+    bolaL.entidades.agregarJugador(2,bolaL.entidades.spawns[2].x,bolaL.entidades.spawns[2].y,"nada",nil,0,300,20,100,"ninguno",21,23,1,inputDos)
     bolaL.entidades.ancho=bolaL.ancho+50
     bolaL.entidades.alto=bolaL.alto+50
 end
@@ -102,12 +117,11 @@ function bolaL.inputPd(dt,jugador,joy)
     if joy:isDown(7) then
         bolaL.entidades.plantarMina(bolaL.entidades.jugadores[jugador])
     end
-    
 end
 
 function bolaL.proupdate(dt,joy)
-bolaL.inputP(dt,1,"w","s","a","d","q","e")
-bolaL.inputPd(dt,2,joy)
+--bolaL.inputP(dt,1,"w","s","a","d","q","e")
+--bolaL.inputPd(dt,2,joy)
 bolaL.corregirPosicion(bolaL.entidades.jugadores[1])
 bolaL.entidades.actualizarJugadores(dt)
 bolaL.entidades.actualizarProyectiles(dt)
