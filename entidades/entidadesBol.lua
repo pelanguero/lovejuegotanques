@@ -1,4 +1,4 @@
-local entidadesBol={jugadores={},proyectiles={},powerUps={},spawns={},banderas={},ancho=850,alto=850,puntuaciones={}}
+local entidadesBol={jugadores={},proyectiles={},powerUps={},spawns={},banderas={},ancho=850,alto=850,puntuaciones={},particulas={}}
 local tanques ={"//assets/tanques/tank_dark.png","//assets/tanques/tank_red.png","//assets/tanques/tank_green.png"}
 local proyectiles={"//assets/proyectiles/bulletDark1_outline.png","//assets/proyectiles/bulletRed1_outline.png","//assets/proyectiles/bulletGreen1_outline.png"}
 local mina=love.graphics.newImage("//assets/mina.png")
@@ -9,16 +9,17 @@ local calavera=love.graphics.newImage("//assets/skull.png")
 local particulas=love.graphics.newImage("//assets/explosion3.png")
 local caja=love.graphics.newImage("//assets/crateMetal.png")
 local cajam=love.graphics.newImage("//assets/crateWood.png")
+local llantas=love.graphics.newImage("//assets/tracksLarge.png")
 function entidadesBol.agregarEquipo()
 local equipo={}
 table.insert(entidadesBol.equipos, equipo)
 end
 
 function entidadesBol.agregarSpawn(spx,spy)
-local spawn={}
-spawn.x=spx
-spawn.y=spy
-table.insert( entidadesBol.spawns,spawn )
+    local spawn={}
+    spawn.x=spx
+    spawn.y=spy
+    table.insert( entidadesBol.spawns,spawn )
 end
 
 function entidadesBol.agregarBandera(spx,spy)
@@ -63,6 +64,7 @@ function entidadesBol.agregarJugador(nEqu,posX,posY,strimagen,imagen,angulo,magn
         ro.puntos=0
         table.insert( entidadesBol.puntuaciones,ro)
     end
+    ju.eparticula=1
     ju.velocidad=magnitud
     ju.antvelocidad=25
     ju.auvel=100
@@ -152,7 +154,25 @@ function entidadesBol.eliminarProyectiles(limitex,limitey)
     end
 end
 
+function entidadesBol.eliminarParticulas()
+    if #entidadesBol.particulas>0 then
+        for i=1,#entidadesBol.proyectiles do
+            if entidadesBol.particulas[i]~=nil then
+                if entidadesBol.proyectiles[i].vida<=0 then
+                    table.remove( entidadesBol.particulas,i)
+                end
+            end
+        end
+    end
+end
+
 function entidadesBol.actualizarProyectiles(dt)
+    entidadesBol.eliminarParticulas()
+    for i=1,#entidadesBol.particulas do
+       
+        entidadesBol.particulas[i].vida=entidadesBol.particulas[i].vida-1*dt
+    
+    end
     if #entidadesBol.proyectiles>0 then
         for i=1,#entidadesBol.proyectiles do
             if  entidadesBol.proyectiles[i]~=nil then
@@ -189,6 +209,10 @@ function entidadesBol.actualizarProyectiles(dt)
             end
         end
     end
+
+    
+
+
 
 end
 
@@ -228,11 +252,28 @@ function entidadesBol.actualizarJugadores(dt)
         if entidadesBol.jugadores[i].energia>entidadesBol.jugadores[i].limite then
             entidadesBol.jugadores[i].energia=entidadesBol.jugadores[i].limite
         end
+        entidadesBol.jugadores[i].eparticula=entidadesBol.jugadores[i].eparticula+1*dt
+        if entidadesBol.jugadores[i].eparticula>1 then
+            entidadesBol.jugadores[i].eparticula=1
+        end
+        if entidadesBol.jugadores[i].magnitud == entidadesBol.jugadores[i].velocidad and entidadesBol.jugadores[i].eparticula>=1 then
+            entidadesBol.añadirParticulas(entidadesBol.jugadores[i],10)
+            entidadesBol.jugadores[i].eparticula=entidadesBol.jugadores[i].eparticula-9.4*dt
+        end
         if entidadesBol.jugadores[i].banderaa then
             entidadesBol.puntuaciones[entidadesBol.jugadores[i].equipo].puntos=entidadesBol.puntuaciones[entidadesBol.jugadores[i].equipo].puntos+1*dt
         end
     end
 end
+function entidadesBol.añadirParticulas(jugadorr,duracion)
+    local ju={}
+    ju.posX=jugadorr.posX
+    ju.posY=jugadorr.posY
+    ju.angulo=jugadorr.angulo
+    ju.vida=duracion
+    ju.vidamax=duracion+0
+    table.insert( entidadesBol.particulas, ju)
+end 
 
 
 function entidadesBol.estaDentro(exx,eyy,entt,xa,ya)
@@ -387,7 +428,20 @@ function entidadesBol.dibujar(eex,eey,canv,xa,ya)
         end
     
     end
+    --dibuja los efectos
+    for i=1,#entidadesBol.particulas do
+        if entidadesBol.estaDentro(eex,eey,entidadesBol.particulas[i],xa,ya) then
+            local fx=entidadesBol.particulas[i].posX-eex
+            local fy=entidadesBol.particulas[i].posY-eey
+            love.graphics.setColor(255,255,255,entidadesBol.particulas[i].vida/entidadesBol.particulas[i].vidamax)
+            love.graphics.draw(llantas,fx,fy,entidadesBol.particulas[i].angulo,1,1,20,26,0,0)
+            --dibuja la caja de colision
+        end
     
+    end
+
+    love.graphics.setColor(255,255,255,1)
+
     --dibuja los power Ups
     for i=1,#entidadesBol.powerUps do
         if entidadesBol.estaDentro(eex,eey,entidadesBol.powerUps[i],xa,ya) then
