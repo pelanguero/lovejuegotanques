@@ -4,6 +4,7 @@ local proyectiles={"//assets/proyectiles/bulletDark1_outline.png","//assets/proy
 local mina=love.graphics.newImage("//assets/mina.png")
 local ssangulo=math.rad(90)
 local cbs=60
+local world=love.physics.newWorld(0,0,false)
 local mcbs=cbs/2
 local calavera=love.graphics.newImage("//assets/skull.png")
 local particulas=love.graphics.newImage("//assets/explosion3.png")
@@ -21,6 +22,16 @@ function entidadesBol.agregarSpawn(spx,spy)
     spawn.y=spy
     table.insert( entidadesBol.spawns,spawn )
 end
+
+local begin_contact_callback = function(fixture_a, fixture_b, contact)
+    print("empezo colision")
+end
+  
+local end_contact_callback = function(fixture_a, fixture_b, contact)
+    print("termino colision")
+end
+  
+world:setCallbacks(begin_contact_callback, end_contact_callback, nil, nil)
 
 function entidadesBol.agregarBandera(spx,spy)
     local bandera={}
@@ -93,6 +104,10 @@ function entidadesBol.agregarJugador(nEqu,posX,posY,strimagen,imagen,angulo,magn
     ju.danhoproyectil=20
     ju.banderaa=false
     ju.band=0
+    ju.body=love.physics.newBody(world,ju.posX,ju.posY,"dynamic")
+    ju.body:setBullet(true)
+    ju.shape=love.physics.newRectangleShape(40,40)
+    ju.fixture=love.physics.newFixture(ju.body,ju.shape,1)
     table.insert( entidadesBol.jugadores,ju)
     print(type(entidadesBol.jugadores[#entidadesBol.jugadores].input.adelante))
     print("jugadorAgregado")
@@ -215,10 +230,16 @@ function entidadesBol.actualizarProyectiles(dt)
 
 
 end
+function entidadesBol.actualizarphy(dt)
+    world:update(dt)
+end
 
 function entidadesBol.actualizarJugadores(dt)
+    --world:update(dt)
     entidadesBol.matarJugadores()
     for i=1,#entidadesBol.jugadores do
+        entidadesBol.jugadores[i].posY=entidadesBol.jugadores[i].body:getY()
+        entidadesBol.jugadores[i].posX=entidadesBol.jugadores[i].body:getX()
         entidadesBol.jugadores[i].posY=entidadesBol.jugadores[i].posY-entidadesBol.jugadores[i].magnitud*math.sin(entidadesBol.jugadores[i].angulo-ssangulo)*dt
         entidadesBol.jugadores[i].posX=entidadesBol.jugadores[i].posX-entidadesBol.jugadores[i].magnitud*math.cos(entidadesBol.jugadores[i].angulo-ssangulo)*dt
         --restar valores absolutos podria ser mejor
@@ -263,6 +284,8 @@ function entidadesBol.actualizarJugadores(dt)
         if entidadesBol.jugadores[i].banderaa then
             entidadesBol.puntuaciones[entidadesBol.jugadores[i].equipo].puntos=entidadesBol.puntuaciones[entidadesBol.jugadores[i].equipo].puntos+1*dt
         end
+        entidadesBol.jugadores[i].body:setX(entidadesBol.jugadores[i].posX)
+        entidadesBol.jugadores[i].body:setY(entidadesBol.jugadores[i].posY)
     end
 end
 function entidadesBol.añadirParticulas(jugadorr,duracion)
@@ -403,8 +426,8 @@ function entidadesBol.desactivarPu(tipo,ply)
 end
 
 function entidadesBol.spawnearJugadores(ent)
-    ent.posX=entidadesBol.spawns[ent.equipo].x
-    ent.posY=entidadesBol.spawns[ent.equipo].y
+    ent.body:setX(entidadesBol.spawns[ent.equipo].x)
+    ent.body:setY(entidadesBol.spawns[ent.equipo].y)
     ent.banderaa=false
     ent.energia=100
     ent.limite=100
