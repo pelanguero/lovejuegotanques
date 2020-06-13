@@ -3,10 +3,26 @@ local bolaL={temud=require "../modosdejuego/prron",entidades=require "../entidad
 local ssangulo=math.rad(90)
 local ancho=0
 local alto=0
-
+local inputUno={}
+local inputDos={}
 
 function bolaL.new()
     bolaL.mapa.new("../mapas/bola","//assets/terrainTiles_default.png")
+    
+    inputUno.adelante="w"
+    inputUno.atras="s"
+    inputUno.derecha="d"
+    inputUno.izquierda="a"
+    inputUno.disparar="q"
+    inputUno.mina="e"
+    inputUno.joystick=false
+    inputDos.adelante="i"
+    inputDos.atras="k"
+    inputDos.derecha="l"
+    inputDos.izquierda="j"
+    inputDos.joystick=false
+    inputDos.disparar="u"
+    inputDos.mina="o"
     ancho=bolaL.mapa.tablamapa.width*64
     alto=bolaL.mapa.tablamapa.height*64
     bolaL.temud.new(bolaL.mapa)
@@ -19,9 +35,8 @@ function bolaL.new()
         bolaL.entidades.agregarBandera(bolaL.mapa.puntos[i].x,bolaL.mapa.puntos[i].y)
        end
     end
-
-    bolaL.entidades.agregarJugador(1,bolaL.entidades.spawns[1].x,bolaL.entidades.spawns[1].y,"nada",nil,0,300,20,100,"ninguno",21,23,1)
-    bolaL.entidades.agregarJugador(2,bolaL.entidades.spawns[2].x,bolaL.entidades.spawns[2].y,"nada",nil,0,300,20,100,"ninguno",21,23,1)
+    bolaL.entidades.agregarJugador(1,bolaL.entidades.spawns[1].x,bolaL.entidades.spawns[1].y,"nada",nil,0,300,20,100,"ninguno",21,23,1,inputUno)
+    bolaL.entidades.agregarJugador(2,bolaL.entidades.spawns[2].x,bolaL.entidades.spawns[2].y,"nada",nil,0,300,20,100,"ninguno",21,23,1,inputDos)
     bolaL.entidades.ancho=bolaL.ancho+50
     bolaL.entidades.alto=bolaL.alto+50
 end
@@ -77,17 +92,38 @@ function bolaL.inputP(dt,jugador,avanzar,retroceder,izquierda,derecha,disparar,m
         bolaL.entidades.jugadores[jugador].angulo=bolaL.entidades.jugadores[jugador].angulo+math.rad(100)*dt
     end
     if love.keyboard.isDown(disparar) then
-    bolaL.entidades.disparar(bolaL.entidades.jugadores[jugador])
+        bolaL.entidades.disparar(bolaL.entidades.jugadores[jugador])
     end
     if love.keyboard.isDown(mina) then
         bolaL.entidades.plantarMina(bolaL.entidades.jugadores[jugador])
     end
 end
 
-function bolaL.proupdate(dt)
-bolaL.inputP(dt,1,"w","s","a","d","q","e")
-bolaL.inputP(dt,2,"i","k","j","l","u","o")
-bolaL.corregirPosicion(bolaL.entidades.jugadores[1])
+function bolaL.inputPd(dt,jugador,joy)
+    if joy:getAxis(2)<0 then
+        bolaL.entidades.jugadores[jugador].posY=bolaL.entidades.jugadores[jugador].posY-bolaL.entidades.jugadores[jugador].magnitud*math.sin(bolaL.entidades.jugadores[jugador].angulo-ssangulo)*dt
+        bolaL.entidades.jugadores[jugador].posX=bolaL.entidades.jugadores[jugador].posX-bolaL.entidades.jugadores[jugador].magnitud*math.cos(bolaL.entidades.jugadores[jugador].angulo-ssangulo)*dt
+    elseif joy:getAxis(2)>0 then
+        bolaL.entidades.jugadores[jugador].posY=bolaL.entidades.jugadores[jugador].posY+bolaL.entidades.jugadores[jugador].magnitud*math.sin(bolaL.entidades.jugadores[jugador].angulo-ssangulo)*dt
+        bolaL.entidades.jugadores[jugador].posX=bolaL.entidades.jugadores[jugador].posX+bolaL.entidades.jugadores[jugador].magnitud*math.cos(bolaL.entidades.jugadores[jugador].angulo-ssangulo)*dt
+    elseif joy:getAxis(1)<0 then
+        bolaL.entidades.jugadores[jugador].angulo=bolaL.entidades.jugadores[jugador].angulo-math.rad(100)*dt
+    elseif joy:getAxis(1)>0 then
+        bolaL.entidades.jugadores[jugador].angulo=bolaL.entidades.jugadores[jugador].angulo+math.rad(100)*dt
+    end
+    if joy:isDown(8) then
+    bolaL.entidades.disparar(bolaL.entidades.jugadores[jugador])
+    end
+    if joy:isDown(7) then
+        bolaL.entidades.plantarMina(bolaL.entidades.jugadores[jugador])
+    end
+end
+
+function bolaL.proupdate(dt,joy)
+--bolaL.inputP(dt,1,"w","s","a","d","q","e")
+--bolaL.inputPd(dt,2,joy)
+bolaL.entidades.actualizarphy(dt)
+--bolaL.corregirPosicion(bolaL.entidades.jugadores[1])
 bolaL.entidades.actualizarJugadores(dt)
 bolaL.entidades.actualizarProyectiles(dt)
 bolaL.entidades.detectarColision(dt)

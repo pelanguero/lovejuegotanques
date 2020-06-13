@@ -10,6 +10,7 @@ pantallas[1]=juego
 eventoss={}
 ifr=nil
 
+
 function love.load()
     love.window.setTitle("Tanks")
     love.window.setMode(1200, 600,{resizable=false,vsync=true})
@@ -18,7 +19,8 @@ end
 
 function love.update(dt)
     --eventos de mouse para elegir la opcion en el menu
-    juego.mododejuego.proupdate(dt)
+    local joysticks = love.joystick.getJoysticks()
+    juego.mododejuego.proupdate(dt,joysticks[1])
 end
 
 function love.draw()
