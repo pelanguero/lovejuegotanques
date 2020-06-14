@@ -186,7 +186,6 @@ function validar()
     end
 
 end
-
 function interf.dibijarElementos()    
     validar()
      for i=1,#interf.elementos,1 do       
@@ -194,7 +193,6 @@ function interf.dibijarElementos()
     end 
     love.graphics.print(interf.even) 
 end
-
  function interf.mousehandler(x, y, button)
        if button == 1 then
           for i =1,#interf.elementos,1 do
@@ -202,7 +200,6 @@ end
           end
        end        
 end 
-
 function pagina1()
         
         addElement(1,100,100,"Jugar",2,2,1,1)
