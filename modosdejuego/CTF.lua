@@ -1,4 +1,4 @@
-local ctf={entidades=require "../entidades/entidadesCTF",mapa=require "../mapa/mapaTS",puntosEquipos={},mdx=600,mdy=300,ancho=1200,alto=600}
+local ctf={temud=require "../modosdejuego/prron",entidades=require "../entidades/entidadesCTF",mapa=require "../mapa/mapaTS",puntosEquipos={},mdx=600,mdy=300,ancho=1200,alto=600}
 --corregir a nuevos parametros
 local ssangulo=math.rad(90)
 local ancho=0
@@ -9,7 +9,7 @@ function ctf.new()
     ctf.mapa.new("../mapas/capturarlabandera","//assets/terrainTiles_default.png")
     ancho=ctf.mapa.tablamapa.width*64
     alto=ctf.mapa.tablamapa.height*64
-    
+    ctf.temud.new(ctf.mapa)
     for i=1,#ctf.mapa.puntos do 
        if ctf.mapa.puntos[i].val==1 then
          ctf.entidades.agregarSpawn(ctf.mapa.puntos[i].x,ctf.mapa.puntos[i].y)
@@ -46,6 +46,7 @@ function ctf.camara(equipo,jugador,canvasss)
     end
     ctf.mapa.dibujar(xsx,ysy,ctf.ancho,ctf.alto,canvasss)
     ctf.entidades.dibujar(xsx,ysy,canvasss,ctf.ancho,ctf.alto)
+    ctf.temud.dibujar(xsx,ysy)
     
 end
 --Mantiene a la entidad dentro de los limites del mapa

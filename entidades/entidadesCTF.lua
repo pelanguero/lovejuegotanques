@@ -30,7 +30,9 @@ function entidadesCTF.agregarBandera(spx,spy)
     bandera.vida=12
     bandera.is=true
     bandera.jugador=0
-    table.insert( entidadesCTF.banderas,spawn)
+    bandera.equipo=#entidadesCTF.banderas+1
+    print(bandera.equipo)
+    table.insert(entidadesCTF.banderas,bandera)
 end
 
 function entidadesCTF.resetBandera(band)
@@ -38,7 +40,7 @@ function entidadesCTF.resetBandera(band)
     band.posX=band.x
     band.posY=band.y
     band.is=true
-    bandera.vida=12
+    band.vida=12
 end    
 
 --tipo:1=tanque de energia plus,2=Sobreescudo,3=modificador de minas,4=velocidad plus
@@ -169,6 +171,18 @@ function entidadesCTF.actualizarProyectiles(dt)
             entidadesCTF.powerUps[i].vida=70
         end
     end
+
+    for i=1,#entidadesCTF.banderas do
+        if entidadesCTF.banderas[i].vida<0 then
+            entidadesCTF.resetBandera(entidadesCTF.banderas[i])
+        else
+            local lol= entidadesCTF.banderas[i].posX~=entidadesCTF.banderas[i].x and entidadesCTF.banderas[i].posY~=entidadesCTF.banderas[i].y
+            if entidadesCTF.banderas[i].is and lol then
+                entidadesCTF.banderas[i].vida=entidadesCTF.banderas[i].vida-1*dt
+            end
+        end
+    end
+
 end
 
 function entidadesCTF.actualizarJugadores(dt)
@@ -229,21 +243,22 @@ function entidadesCTF.detectarColision(dt)
 
     --jugadores v banderas
 
-    for i=1,#entidadesCTF.jugadores do
-        for j=1,#entidadesCTF.banderas do
+    for j=1,#entidadesCTF.banderas do
+        for i=1,#entidadesCTF.jugadores do
             local corX=entidadesCTF.banderas[j].posX-mcbs
             local corY=entidadesCTF.banderas[j].posY-mcbs
-            local sx=corX<entidadesCTF.jugadores[i].posX and corX+cbs>entidadesCTF.jugadores[i].posX
-            local sy=corY<entidadesCTF.jugadores[i].posY and corY+cbs>entidadesCTF.jugadores[j].posY
-            local cerd=sx and sy
-            local ord= j~=entidadesCTF.jugadores[i].equipo and entidadesCTF.banderas[j].is
-            local orr= entidadesCTF.banderas[j].posX==entidadesCTF.banderas[j].x and entidadesCTF.banderas[j].posY==entidadesCTF.banderas[j].y
-            if cerd and ord  then 
+            local scorX=entidadesCTF.banderas[j].x-mcbs
+            local scorY=entidadesCTF.banderas[j].y-mcbs
+            local cerd=entidadesCTF.estaDentro(corX,corY,entidadesCTF.jugadores[i],cbs,cbs)
+            local ord= entidadesCTF.banderas[j].equipo~=entidadesCTF.jugadores[i].equipo and entidadesCTF.banderas[j].is
+            local orr= entidadesCTF.estaDentro(scorX,scorY,entidadesCTF.jugadores[i],cbs,cbs)
+            if cerd and ord then 
                 entidadesCTF.banderas[j].is=false
                 entidadesCTF.jugadores[i].banderaa=true
-                entidadesCTF.jugadores[i].band=j
-            elseif cerd and entidadesCTF.jugadores[i].banderaa and orr then
-                entidadesCTF.puntos[entidadesCTF.jugadores[i].equipo]=entidadesCTF.puntos[entidadesCTF.jugadores[i].equipo]+1
+                entidadesCTF.jugadores[i].band=entidadesCTF.banderas[j].equipo
+                print("bandera tomada")
+            elseif orr and entidadesCTF.jugadores[i].banderaa and entidadesCTF.banderas[j].equipo==entidadesCTF.jugadores[i].equipo  then
+                entidadesCTF.puntuaciones[entidadesCTF.jugadores[i].equipo].puntos=entidadesCTF.puntuaciones[entidadesCTF.jugadores[i].equipo].puntos+1
                 entidadesCTF.resetBandera(entidadesCTF.banderas[entidadesCTF.jugadores[i].band])
                 entidadesCTF.jugadores[i].banderaa=false
                 entidadesCTF.jugadores[i].band=0
@@ -258,6 +273,11 @@ end
 function entidadesCTF.matarJugadores()
     for i=1,#entidadesCTF.jugadores do
         if entidadesCTF.jugadores[i].vida<1 then
+            if entidadesCTF.jugadores[i].banderaa then
+            entidadesCTF.banderas[entidadesCTF.jugadores[i].band].posX=entidadesCTF.jugadores[i].posX
+            entidadesCTF.banderas[entidadesCTF.jugadores[i].band].posY=entidadesCTF.jugadores[i].posY
+            entidadesCTF.banderas[entidadesCTF.jugadores[i].band].is=true
+            end
             if entidadesCTF.jugadores[i].spawnear then
             entidadesCTF.spawnearJugadores(entidadesCTF.jugadores[i])
             else
@@ -333,24 +353,25 @@ function entidadesCTF.dibujar(eex,eey,canv,xa,ya)
             local fx=entidadesCTF.powerUps[i].posX-eex
             local fy=entidadesCTF.powerUps[i].posY-eey
             if entidadesCTF.powerUps[i].vida>61 then
-                love.graphics.draw(cajam,fx,fy,0,1,1,14,14,0,0)
+                love.graphics.draw(caja,fx,fy,0,1,1,14,14,0,0)
             else
-                --love.graphics.setColor(1,1,0)
+                love.graphics.setColor(0,255,0)
                 --math.rad(entidadesCTF.powerUps[i].vida*60)
                 love.graphics.arc("fill",fx,fy,30,0,math.rad(entidadesCTF.powerUps[i].vida*6))
+                love.graphics.setColor(255,255,255)
             end
         end
     end
 
     --dibuja banderas
     for i=1,#entidadesCTF.banderas do
-        --if #entidadesCTF.banderas[i].is then
-            --if entidadesCTF.estaDentro(eex,eey,entidadesCTF.banderas[i],xa,ya) then
+        if entidadesCTF.banderas[i].is then
+            if entidadesCTF.estaDentro(eex,eey,entidadesCTF.banderas[i],xa,ya) then
                 local fx=entidadesCTF.banderas[i].posX-eex
                 local fy=entidadesCTF.banderas[i].posY-eey  
                 love.graphics.draw(cajam,fx,fy,0,1,1,14,14,0,0)
-            --end
-        --end
+            end
+        end
     end
 
     --dibuja a los jugadores
@@ -362,6 +383,10 @@ function entidadesCTF.dibujar(eex,eey,canv,xa,ya)
                 --dibuja la caja de colision
             end
     end
+
+    love.graphics.print(tostring(entidadesCTF.puntuaciones[1].puntos),50,500)
+    love.graphics.print(tostring(entidadesCTF.puntuaciones[2].puntos),50,550)
+
     love.graphics.setCanvas()
 end  
 

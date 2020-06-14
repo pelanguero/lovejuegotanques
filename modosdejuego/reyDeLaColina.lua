@@ -1,4 +1,4 @@
-local rey={entidades=require "../entidades/entidadesrey",mapa=require "../mapa/mapaTS",puntosEquipos={},mdx=400,mdy=300,ancho=800,alto=600}
+local rey={entidades=require "../entidades/entidadesrey",mapa=require "../mapa/mapaTS",puntosEquipos={},mdx=400,mdy=300,ancho=1200,alto=600}
 --corregir a nuevos parametros
 local ssangulo=math.rad(90)
 local ancho=0
@@ -44,8 +44,8 @@ function rey.camara(equipo,jugador,canvasss)
     elseif ysy>alto-rey.alto then
         ysy=alto-rey.alto
     end
-    rey.mapa.dibujar(xsx,ysy,1200,1000,canvasss)
-    rey.entidades.dibujar(xsx,ysy,canvasss)
+    rey.mapa.dibujar(xsx,ysy,rey.ancho,rey.alto,canvasss)
+    rey.entidades.dibujar(xsx,ysy,canvasss,rey.ancho,rey.alto)
     
 end
 --Mantiene a la entidad dentro de los limites del mapa

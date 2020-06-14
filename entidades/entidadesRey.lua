@@ -164,12 +164,10 @@ function entidadesRey.actualizarJugadores(dt)
 end
 
 
-function entidadesRey.estaDentro(exx,eyy,entt)
-
+function entidadesRey.estaDentro(exx,eyy,entt,xa,ya)
     local retorno=false
-    local erer=entt.posX>exx and entt.posX<exx+entidadesRey.ancho
-    local rr=entt.posY>eyy and entt.posY<eyy+entidadesRey.ancho
-
+    local erer=entt.posX>exx and entt.posX<exx+xa
+    local rr=entt.posY>eyy and entt.posY<eyy+ya
     if rr and erer then
     retorno=true
     end
@@ -313,13 +311,13 @@ end
 
 
 
-function entidadesRey.dibujar(eex,eey,canv)
+function entidadesRey.dibujar(eex,eey,canv,xa,ya)
     --dibuja a los proyectiles
     if canv~=nil then
         love.graphics.setCanvas(canv)
     end
     for i=1,#entidadesRey.proyectiles do
-        if entidadesRey.estaDentro(eex,eey,entidadesRey.proyectiles[i]) then
+        if entidadesRey.estaDentro(eex,eey,entidadesRey.proyectiles[i],xa,ya) then
             local fx=entidadesRey.proyectiles[i].posX-eex
             local fy=entidadesRey.proyectiles[i].posY-eey
             love.graphics.draw(entidadesRey.proyectiles[i].imagen,fx,fy,entidadesRey.proyectiles[i].angulo,entidadesRey.proyectiles[i].tamanho,entidadesRey.proyectiles[i].tamanho,entidadesRey.proyectiles[i].medX,entidadesRey.proyectiles[i].medY,0,0)
@@ -330,7 +328,7 @@ function entidadesRey.dibujar(eex,eey,canv)
     
     --dibuja los power Ups
     for i=1,#entidadesRey.powerUps do
-        if entidadesRey.estaDentro(eex,eey,entidadesRey.powerUps[i]) then
+        if entidadesRey.estaDentro(eex,eey,entidadesRey.powerUps[i],xa,ya) then
             local fx=entidadesRey.powerUps[i].posX-eex
             local fy=entidadesRey.powerUps[i].posY-eey
             if entidadesRey.powerUps[i].vida>61 then
@@ -342,14 +340,14 @@ function entidadesRey.dibujar(eex,eey,canv)
             end
         end
     end
-    if entidadesRey.estaDentro(eex,eey,entidadesRey.colina[1]) then
+    if entidadesRey.estaDentro(eex,eey,entidadesRey.colina[1],xa,ya) then
         local fx=entidadesRey.colina[1].posX-eex
         local fy=entidadesRey.colina[1].posY-eey
         love.graphics.circle("fill",fx,fy,entidadesRey.rcolina)
     end
     --dibuja a los jugadores
     for i=1,#entidadesRey.jugadores do
-            if entidadesRey.estaDentro(eex,eey,entidadesRey.jugadores[i]) then
+            if entidadesRey.estaDentro(eex,eey,entidadesRey.jugadores[i],xa,ya) then
                 local fx=entidadesRey.jugadores[i].posX-eex
                 local fy=entidadesRey.jugadores[i].posY-eey
                 love.graphics.draw(entidadesRey.jugadores[i].imagen,fx,fy,entidadesRey.jugadores[i].angulo,entidadesRey.jugadores[i].tamanho,entidadesRey.jugadores[i].tamanho,entidadesRey.jugadores[i].medX,entidadesRey.jugadores[i].medY,0,0)
@@ -360,7 +358,7 @@ function entidadesRey.dibujar(eex,eey,canv)
     love.graphics.print(tostring(entidadesRey.puntuaciones[1].puntos),50,500)
     love.graphics.print(tostring(entidadesRey.puntuaciones[2].puntos),50,550)
     
-    hud.dibujar(entidadesRey.jugadores[1])
+    --hud.dibujar(entidadesRey.jugadores[1])
 
     love.graphics.setCanvas()
 end  
