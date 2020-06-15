@@ -1,4 +1,5 @@
 local bolaL={temud=require "../modosdejuego/prron",entidades=require "../entidades/entidadesBol",mapa=require "../mapa/mapaTS",puntosEquipos={},mdx=600,mdy=300,ancho=1200,alto=600}
+local inter= require "interf"
 --corregir a nuevos parametros
 local ssangulo=math.rad(90)
 local ancho=0
@@ -64,7 +65,7 @@ end
 
 end
 
-function bolaL.inputP(dt,jugador,avanzar,retroceder,izquierda,derecha,disparar,mina)
+function bolaL.inputP(dt,jugador,avanzar,retroceder,izquierda,derecha,disparar,mina,pusa)
     if love.keyboard.isDown(avanzar) then
         bolaL.entidades.jugadores[jugador].posY=bolaL.entidades.jugadores[jugador].posY-bolaL.entidades.jugadores[jugador].magnitud*math.sin(bolaL.entidades.jugadores[jugador].angulo-ssangulo)*dt
         bolaL.entidades.jugadores[jugador].posX=bolaL.entidades.jugadores[jugador].posX-bolaL.entidades.jugadores[jugador].magnitud*math.cos(bolaL.entidades.jugadores[jugador].angulo-ssangulo)*dt
@@ -82,11 +83,15 @@ function bolaL.inputP(dt,jugador,avanzar,retroceder,izquierda,derecha,disparar,m
     if love.keyboard.isDown(mina) then
         bolaL.entidades.plantarMina(bolaL.entidades.jugadores[jugador])
     end
+    if love.keyboard.isDown(pusa) then
+        inter.even = 3
+    end 
+
 end
 
 function bolaL.proupdate(dt)
-bolaL.inputP(dt,1,"w","s","a","d","q","e")
-bolaL.inputP(dt,2,"i","k","j","l","u","o")
+bolaL.inputP(dt,1,"w","s","a","d","q","e","t")
+bolaL.inputP(dt,2,"i","k","j","l","u","o","y")
 bolaL.corregirPosicion(bolaL.entidades.jugadores[1])
 bolaL.entidades.actualizarJugadores(dt)
 bolaL.entidades.actualizarProyectiles(dt)

@@ -5,7 +5,7 @@ function cajas(ele,ref)
     local w, h = t:getDimensions()
 
     local p = love.graphics.newText( font, ref)
-            love.graphics.rectangle("line",ele.x-2,ele.y-2,w*1.1,h*1.2)
+            --love.graphics.rectangle("line",ele.x-2,ele.y-2,w*1.1,h*1.6)
             love.graphics.rectangle("line",(ele.x-2)+w*1.1+10,ele.y-2,40,h*1.2)
             love.graphics.draw(p,(ele.x-2)+w*1.1+12,ele.y,0,ele.escalax,ele.escalay)
 end 
@@ -14,10 +14,10 @@ function dibujarText(ele)
         local font = love.graphics.getFont()        
         local t = love.graphics.newText( font, ele.txt)     
         local w, h = t:getDimensions()
-        love.graphics.draw(t,ele.x,ele.y,0,ele.escalax,ele.escalay) 
+       love.graphics.draw(t,ele.x,ele.y,0,ele.escalax,ele.escalay) 
 
         if ele.tipo == 1 then
-            love.graphics.rectangle("line",ele.x-2,ele.y,w*1.1,h*1.2)
+           -- love.graphics.rectangle("line",ele.x-2,ele.y,w*1.1,h*1.6)
         end 
         if ele.tipo == 2 then
             cajas(ele,interf.ini.jugadores)             
@@ -38,6 +38,9 @@ function dibujarText(ele)
         if ele.tipo == 7 then
             cajas(ele,interf.ini.time)             
         end
+        if ele.tipo == 8 then 
+            love.graphics.rectangle("line",ele.x-2,ele.y,w*1.1,h*1.2)
+        end 
             
     
 end 
@@ -48,8 +51,8 @@ function addElement(tipo,x,y,val,seg,id,ty,tp)
     end 
     if tp == 2 then         
         interf.addUIElement(x,y,tipo,val,1,1,1,1,0.23,0,1,1,1,1)
-        interf.addUIElement(x+240,y,1," + ",1,1,1,ty,0.23,8,1,1,1,1)
-        interf.addUIElement(x+270,y,1," - ",1,1,1,ty,0.23,9,1,1,1,1)
+        interf.addUIElement(x+240,y,8," + ",1,1,1,ty,0.23,8,1,1,1,1)
+        interf.addUIElement(x+270,y,8," - ",1,1,1,ty,0.23,9,1,1,1,1)
     end 
 
 end 
@@ -77,12 +80,12 @@ function event(x,y,ele)
                 end
                 -----Opciones modo
                 if ele.id == 8 then
-                    if interf.ini.modo == 2 then                        
+                    if interf.ini.modo == 1 then                        
                         if  interf.ini.numMuertes < 100 then 
                             interf.ini.numMuertes = interf.ini.numMuertes + 5 
                         end 
                     end
-                    if interf.ini.modo == 3 then
+                    if interf.ini.modo == 2 then
                         if ele.ty == 5 then
                             if  interf.ini.capturas < 6 then 
                                 interf.ini.capturas = interf.ini.capturas + 1 
@@ -96,7 +99,7 @@ function event(x,y,ele)
                         end                                
                 
                     end
-                    if interf.ini.modo == 4 then
+                    if interf.ini.modo == 3 or interf.ini.modo == 4 then
                         if ele.ty == 5 then
                             if  interf.ini.time < 600 then 
                                 interf.ini.time = interf.ini.time + 25 
@@ -112,12 +115,12 @@ function event(x,y,ele)
                     end   
                 end 
                 if ele.id == 9 then 
-                    if interf.ini.modo == 2 then
+                    if interf.ini.modo == 1 then
                         if  interf.ini.numMuertes > 20 then 
                             interf.ini.numMuertes = interf.ini.numMuertes - 5 
                         end 
                     end
-                    if interf.ini.modo == 3 then
+                    if interf.ini.modo == 2 then
                         if ele.ty == 5 then
                             if  interf.ini.capturas > 3 then 
                                 interf.ini.capturas = interf.ini.capturas - 1 
@@ -131,7 +134,7 @@ function event(x,y,ele)
                         end                               
                 
                     end
-                    if interf.ini.modo == 4 then
+                    if interf.ini.modo == 3 or interf.ini.modo == 4 then
                         if ele.ty == 5 then
                             if  interf.ini.time > 120 then 
                                 interf.ini.time = interf.ini.time - 25 
@@ -186,6 +189,7 @@ function validar()
     end
 
 end
+
 function interf.dibijarElementos()    
     validar()
      for i=1,#interf.elementos,1 do       
@@ -193,13 +197,15 @@ function interf.dibijarElementos()
     end 
     love.graphics.print(interf.even) 
 end
- function interf.mousehandler(x, y, button)
+
+function interf.mousehandler(x, y, button)
        if button == 1 then
           for i =1,#interf.elementos,1 do
                 event(x,y,interf.elementos[i]) 
           end
        end        
 end 
+
 function pagina1()
         
         addElement(1,100,100,"Jugar",2,2,1,1)
@@ -208,37 +214,37 @@ function pagina1()
 end 
 function pagina3()
         
-    addElement(1,100,100,"Seguir jugando",2,2,1,1)
+    
+    addElement(1,100,100,"Seguir jugando",2,10,1,1)
     addElement(1,100,200,"Configuraciones ",1,3,1,1)
     addElement(1,100,300,"Salir pantalla inicio",1,2,1,1)        
 end 
 function pagina2() 
    -- addElement(tipo,x,y,val,seg,id,ty,tp)
-        addElement(1,100,100,"Modo de juego :",1,7,1,1)     
-        addElement(1,160,130,"Team Slayer :",2,7,1,1)     
-        addElement(1,160,160,"Capture The Flag :",3,7,1,1)     
-        addElement(1,160,190,"King Of The Hill:",4,7,1,1)     
-        addElement(1,160,220,"Crazy Ball :",5,7,1,1)                
-
-               
-        interf.addUIElement(100,260,2,"Jugadores",1,1,1,1,0.23,0,1,1,1,1)
-        interf.addUIElement(240,260,1," + ",1,1,1,1,0.23,4,1,1,1,1)
-        interf.addUIElement(270,260,1," - ",1,1,1,1,0.23,5,1,1,1,1)
+        addElement(1,100,100,"Modo de juego",1,0,1,1)     
+        addElement(8,160,130,"Team Slayer",1,7,1,1)     
+        addElement(8,160,160,"Capture The Flag",2,7,1,1)     
+        addElement(8,160,190,"King Of The Hill",3,7,1,1)     
+        addElement(8,160,220,"Crazy Ball",4,7,1,1)                
+              
+        interf.addUIElement(100,260,2,"Jugadores",1,1,1,1,0.23,0,1,1,1,2)
+        interf.addUIElement(240,260,8," + ",1,1,1,1,0.23,4,1,1,1,1)
+        interf.addUIElement(270,260,8," - ",1,1,1,1,0.23,5,1,1,1,1)
 
         interf.addUIElement(100,290,4,"Modo de juego",1,1,1,1,0.23,0,1,1,1,1)
 
-        if interf.ini.modo ==2 then
+        if interf.ini.modo ==1 then
             addElement(3,100,320,"Numero de muertes: ",1,1,1,2)
         end  
-        if interf.ini.modo ==3 then
+        if interf.ini.modo ==2 then
             addElement(6,100,320,"Rondas: ",2,1,4,2)
             addElement(5,100,350,"Capturas: ",2,1,5,2)
         end 
-        if interf.ini.modo ==4 then 
+        if interf.ini.modo ==3 then 
             addElement(7,100,320,"tiempo: ",2,1,5,2)
             addElement(6,100,350,"Rondas: ",2,1,4,2)
         end 
-        if interf.ini.modo == 5 then
+        if interf.ini.modo ==4 then
             addElement(7,100,320,"tiempo: ",2,1,5,2)
             addElement(6,100,350,"Rondas: ",2,1,4,2)
         end 
