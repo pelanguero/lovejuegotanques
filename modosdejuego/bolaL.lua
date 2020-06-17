@@ -1,4 +1,4 @@
-local bolaL={temud=require "../modosdejuego/prron",entidades=require "../entidades/entidadesBol",mapa=require "../mapa/mapaTS",puntosEquipos={},mdx=600,mdy=300,ancho=1200,alto=600}
+local bolaL={temud=require "../modosdejuego/prron",entidades=require "../entidades/entidadesBol",mapa=require "../mapa/mapaTS",puntosEquipos={},mdx=600,mdy=300,ancho=1200,alto=600,hud=require("../nohud")}
 --corregir a nuevos parametros
 local ssangulo=math.rad(90)
 local ancho=0
@@ -6,9 +6,12 @@ local alto=0
 local inputUno={}
 local inputDos={}
 
-function bolaL.new()
+function bolaL.new(ancc,altt)
     bolaL.mapa.new("../mapas/bola","//assets/terrainTiles_default.png")
-    
+    bolaL.ancho=ancc
+    bolaL.alto=altt
+    bolaL.mdx=math.floor(ancc/2)
+    bolaL.mdy=math.floor(altt/2)
     inputUno.adelante="w"
     inputUno.atras="s"
     inputUno.derecha="d"
@@ -25,7 +28,7 @@ function bolaL.new()
     inputDos.mina="o"
     ancho=bolaL.mapa.tablamapa.width*64
     alto=bolaL.mapa.tablamapa.height*64
-    bolaL.temud.new(bolaL.mapa)
+    bolaL.temud.new(bolaL.mapa,ancc,altt)
     for i=1,#bolaL.mapa.puntos do 
        if bolaL.mapa.puntos[i].val==1 then
          bolaL.entidades.agregarSpawn(bolaL.mapa.puntos[i].x,bolaL.mapa.puntos[i].y)
@@ -120,13 +123,15 @@ function bolaL.inputPd(dt,jugador,joy)
 end
 
 function bolaL.proupdate(dt,joy)
---bolaL.inputP(dt,1,"w","s","a","d","q","e")
---bolaL.inputPd(dt,2,joy)
 bolaL.entidades.actualizarphy(dt)
---bolaL.corregirPosicion(bolaL.entidades.jugadores[1])
 bolaL.entidades.actualizarJugadores(dt)
 bolaL.entidades.actualizarProyectiles(dt)
 bolaL.entidades.detectarColision(dt)
+end
+
+function bolaL.keypressed( key,scancode,isrepeat)
+    -- body
+    bolaL.entidades.keypressed( key,scancode,isrepeat)
 end
 
 return bolaL

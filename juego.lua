@@ -3,7 +3,7 @@
 --require("./modosdejuego/TEAMSLAYER")
 local juego={mododejuego=nil,jugando=false}
 
-function juego.new(mdj)
+function juego.new(mdj,jancho,jalto)
     -- body
     if mdj==1 then
         juego.mododejuego=require("./modosdejuego/TEAMSLAYER")
@@ -16,7 +16,7 @@ function juego.new(mdj)
     elseif mdj==4 then
         juego.mododejuego=require("./modosdejuego/bolaL")
     end
-    juego.mododejuego.new()
+    juego.mododejuego.new(jancho,jalto)
     juego.jugando=true
 end
 
