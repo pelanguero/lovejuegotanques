@@ -1,20 +1,21 @@
 interf={elementos={},even=3,ini={jugadores =1,modo=2,numMuertes=20,capturas= 3,rondas=1,time=120}} 
+local font = love.graphics.newFont( "arial_/arial_narrow_7.ttf",20 )
+local color ={244/255,208/255,63/255}   
 function cajas(ele,ref) 
-    local font = love.graphics.getFont()        
+            
     local t = love.graphics.newText( font, ele.txt)
     local w, h = t:getDimensions()
 
-    local p = love.graphics.newText( font, ref)
-            --love.graphics.rectangle("line",ele.x-2,ele.y-2,w*1.1,h*1.6)
-            love.graphics.rectangle("line",(ele.x-2)+w*1.1+10,ele.y-2,40,h*1.2)
+    local p = love.graphics.newText( font, ref)            
+            love.graphics.rectangle("line",(ele.x-2)+w*1.1+10,ele.y-2,40,h)
             love.graphics.draw(p,(ele.x-2)+w*1.1+12,ele.y,0,ele.escalax,ele.escalay)
 end 
 
 function dibujarText(ele)   
-        local font = love.graphics.getFont()        
+        --local font = love.graphics.getFont()              
         local t = love.graphics.newText( font, ele.txt)     
         local w, h = t:getDimensions()
-       love.graphics.draw(t,ele.x,ele.y,0,ele.escalax,ele.escalay) 
+        love.graphics.draw(t,ele.x,ele.y,0,1,1) 
 
         if ele.tipo == 1 then
            -- love.graphics.rectangle("line",ele.x-2,ele.y,w*1.1,h*1.6)
@@ -39,29 +40,36 @@ function dibujarText(ele)
             cajas(ele,interf.ini.time)             
         end
         if ele.tipo == 8 then 
-            love.graphics.rectangle("line",ele.x-2,ele.y,w*1.1,h*1.2)
+            love.graphics.rectangle("line",ele.x-4,ele.y-4,w*1.2,h*1.1)
+        end
+        if ele.tipo == 10 then 
+            love.graphics.rectangle("line",ele.x-4,ele.y-4,w*1.2,h*1.1)
         end 
             
     
 end 
 function addElement(tipo,x,y,val,seg,id,ty,tp)
     --interf.addUIElement(x,y,tipo,frase,escalax,escalay,tx,ty,transp,id,tColorT,tColorF,im,seg)
+              
+        local t = love.graphics.newText( font, val)     
+        local w, h = t:getDimensions()
     if tp == 1 then 
         interf.addUIElement(x,y,tipo,val,1,1,1,1,0.23,id,1,1,1,seg)
     end 
     if tp == 2 then         
         interf.addUIElement(x,y,tipo,val,1,1,1,1,0.23,0,1,1,1,1)
-        interf.addUIElement(x+240,y,8," + ",1,1,1,ty,0.23,8,1,1,1,1)
-        interf.addUIElement(x+270,y,8," - ",1,1,1,ty,0.23,9,1,1,1,1)
+        interf.addUIElement(w+200,y,8," + ",1,1,1,ty,0.23,8,1,1,1,1)
+        interf.addUIElement(w+230,y,8," - ",1,1,1,ty,0.23,9,1,1,1,1)
     end 
 
 end 
     
 function event(x,y,ele)
-            local font = love.graphics.getFont()       
+             
             t = love.graphics.newText( font, ele.txt)
             w, h = t:getDimensions()         
             if x > ele.x and x < ele.x+w*1.1 and y > ele.y and y < ele.y+h*1.1 then
+                color ={244/255,208/255,63/255}
                 if ele.id == 2 then
                 interf.even = ele.seg 
                 end
@@ -209,32 +217,33 @@ end
 function pagina1()
         
         addElement(1,100,100,"Jugar",2,2,1,1)
-        addElement(1,100,200,"Personalizar",1,3,1,1)
-        addElement(1,100,300,"salir",1,2,1,1)        
+        --addElement(1,100,200,"Personalizar",1,3,1,1)
+        addElement(1,100,300,"Salir",1,2,1,1)
+        love.graphics.setBackgroundColor(46/255,64/255,83/255)        
 end 
 function pagina3()
         
     
-    addElement(1,100,100,"Seguir jugando",2,10,1,1)
-    addElement(1,100,200,"Configuraciones ",1,3,1,1)
-    addElement(1,100,300,"Salir pantalla inicio",1,2,1,1)        
+    addElement(10,100,100,"Seguir jugando",2,10,1,1)
+    --addElement(10,100,200,"Configuraciones",1,3,1,1)
+    addElement(10,100,300,"Salir pantalla inicio",1,2,1,1)        
 end 
 function pagina2() 
    -- addElement(tipo,x,y,val,seg,id,ty,tp)
-        addElement(1,100,100,"Modo de juego",1,0,1,1)     
-        addElement(8,160,130,"Team Slayer",1,7,1,1)     
-        addElement(8,160,160,"Capture The Flag",2,7,1,1)     
-        addElement(8,160,190,"King Of The Hill",3,7,1,1)     
-        addElement(8,160,220,"Crazy Ball",4,7,1,1)                
+        addElement(1,100,100,"Modo de juego: ",1,0,1,1)     
+        addElement(10,160,130,"Team Slayer",1,7,1,1)     
+        addElement(10,160,160,"Capture The Flag",2,7,1,1)     
+        addElement(10,160,190,"King Of The Hill",3,7,1,1)     
+        addElement(10,160,220,"Crazy Ball",4,7,1,1)                
               
-        interf.addUIElement(100,260,2,"Jugadores",1,1,1,1,0.23,0,1,1,1,2)
-        interf.addUIElement(240,260,8," + ",1,1,1,1,0.23,4,1,1,1,1)
-        interf.addUIElement(270,260,8," - ",1,1,1,1,0.23,5,1,1,1,1)
+        interf.addUIElement(100,260,2,"Jugadores: ",1,1,1,1,0.23,0,1,1,1,2)
+        interf.addUIElement(270,260,8," + ",1,1,1,1,0.23,4,1,1,1,1)
+        interf.addUIElement(300,260,8," - ",1,1,1,1,0.23,5,1,1,1,1)
 
-        interf.addUIElement(100,290,4,"Modo de juego",1,1,1,1,0.23,0,1,1,1,1)
+        interf.addUIElement(100,290,4,"Modo de juego:",1,1,1,1,0.23,0,1,1,1,1)
 
         if interf.ini.modo ==1 then
-            addElement(3,100,320,"Numero de muertes: ",1,1,1,2)
+            addElement(3,100,320,"Numero de muertes:",1,1,1,2)
         end  
         if interf.ini.modo ==2 then
             addElement(6,100,320,"Rondas: ",2,1,4,2)
