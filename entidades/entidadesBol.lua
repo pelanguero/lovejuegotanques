@@ -1,25 +1,37 @@
-local entidadesBol={jugadores={},proyectiles={},powerUps={},spawns={},banderas={},ancho=850,alto=850,puntuaciones={}}
+local entidadesBol={jugadores={},proyectiles={},powerUps={},spawns={},banderas={},ancho=850,alto=850,puntuaciones={},particulas={}}
 local tanques ={"//assets/tanques/tank_dark.png","//assets/tanques/tank_red.png","//assets/tanques/tank_green.png"}
 local proyectiles={"//assets/proyectiles/bulletDark1_outline.png","//assets/proyectiles/bulletRed1_outline.png","//assets/proyectiles/bulletGreen1_outline.png"}
 local mina=love.graphics.newImage("//assets/mina.png")
 local ssangulo=math.rad(90)
 local cbs=60
+local world=love.physics.newWorld(0,0,false)
 local mcbs=cbs/2
 local calavera=love.graphics.newImage("//assets/skull.png")
 local particulas=love.graphics.newImage("//assets/explosion3.png")
 local caja=love.graphics.newImage("//assets/crateMetal.png")
 local cajam=love.graphics.newImage("//assets/crateWood.png")
+local llantas=love.graphics.newImage("//assets/tracksLarge.png")
 function entidadesBol.agregarEquipo()
 local equipo={}
 table.insert(entidadesBol.equipos, equipo)
 end
 
 function entidadesBol.agregarSpawn(spx,spy)
-local spawn={}
-spawn.x=spx
-spawn.y=spy
-table.insert( entidadesBol.spawns,spawn )
+    local spawn={}
+    spawn.x=spx
+    spawn.y=spy
+    table.insert( entidadesBol.spawns,spawn )
 end
+
+local begin_contact_callback = function(fixture_a, fixture_b, contact)
+    print("empezo colision")
+end
+  
+local end_contact_callback = function(fixture_a, fixture_b, contact)
+    print("termino colision")
+end
+  
+world:setCallbacks(begin_contact_callback, end_contact_callback, nil, nil)
 
 function entidadesBol.agregarBandera(spx,spy)
     local bandera={}
@@ -56,20 +68,27 @@ function entidadesBol.agregarPowerUp(pwx,pwy)
 end
 
 --equipo,--entidad=posX,posY,strimagen,imagen,angulo,magnitud,danho,vida,powerUp,medX,medY,tamanho,anco,larg
-function entidadesBol.agregarJugador(nEqu,posX,posY,strimagen,imagen,angulo,magnitud,danho,vida,powerUp,medX,medY,tamanho,anco,larg)
+function entidadesBol.agregarJugador(nEqu,posX,posY,strimagen,imagen,angulo,magnitud,danho,vida,powerUp,medX,medY,tamanho,anco,larg,escala,inputt)
     local  ju={}
     if entidadesBol.puntuaciones[nEqu]==nil then
         local ro={}
         ro.puntos=0
         table.insert( entidadesBol.puntuaciones,ro)
     end
+    ju.eparticula=1
+    ju.velocidad=magnitud
+    ju.antvelocidad=25
+    ju.auvel=100
+    ju.input=anco
     ju.equipo=nEqu
     ju.posX=posX
     ju.posY=posY
+    ju.rposX=0
+    ju.rposY=0
     ju.strimagen=tanques[nEqu]
     ju.imagen=love.graphics.newImage(ju.strimagen)
     ju.angulo=angulo
-    ju.magnitud=magnitud
+    ju.magnitud=0
     ju.danho=danho
     ju.vida=vida
     ju.powerup=powerUp
@@ -85,7 +104,12 @@ function entidadesBol.agregarJugador(nEqu,posX,posY,strimagen,imagen,angulo,magn
     ju.danhoproyectil=20
     ju.banderaa=false
     ju.band=0
+    ju.body=love.physics.newBody(world,ju.posX,ju.posY,"dynamic")
+    --ju.body:setBullet(true)
+    ju.shape=love.physics.newRectangleShape(40,40)
+    ju.fixture=love.physics.newFixture(ju.body,ju.shape,1)
     table.insert( entidadesBol.jugadores,ju)
+    print(type(entidadesBol.jugadores[#entidadesBol.jugadores].input.adelante))
     print("jugadorAgregado")
 end
 
@@ -118,7 +142,7 @@ function entidadesBol.disparar(rrr)
     local py=rrr.posY-24*math.sin(rrr.angulo-ssangulo)
     --nEqu,posX,posY,strimagen,imagen,angulo,magnitud,danho,vida,powerUp,medX,medY,tamanho
     if rrr.energia>rrr.danhoproyectil then
-        entidadesBol.agregarProyectil(rrr.equipo,px,py,1,nil,rrr.angulo,300,rrr.danhoproyectil,10,"ninguno",4,7,1,1)
+        entidadesBol.agregarProyectil(rrr.equipo,px,py,1,nil,rrr.angulo,600,rrr.danhoproyectil,10,"ninguno",4,7,1,1)
         rrr.energia=rrr.energia-rrr.danhoproyectil
     end
 end
@@ -145,7 +169,25 @@ function entidadesBol.eliminarProyectiles(limitex,limitey)
     end
 end
 
+function entidadesBol.eliminarParticulas()
+    if #entidadesBol.particulas>0 then
+        for i=1,#entidadesBol.proyectiles do
+            if entidadesBol.particulas[i]~=nil then
+                if entidadesBol.proyectiles[i].vida<=0 then
+                    table.remove( entidadesBol.particulas,i)
+                end
+            end
+        end
+    end
+end
+
 function entidadesBol.actualizarProyectiles(dt)
+    entidadesBol.eliminarParticulas()
+    for i=1,#entidadesBol.particulas do
+       
+        entidadesBol.particulas[i].vida=entidadesBol.particulas[i].vida-1*dt
+    
+    end
     if #entidadesBol.proyectiles>0 then
         for i=1,#entidadesBol.proyectiles do
             if  entidadesBol.proyectiles[i]~=nil then
@@ -184,19 +226,80 @@ function entidadesBol.actualizarProyectiles(dt)
     end
 
 end
+function entidadesBol.actualizarphy(dt)
+    world:update(dt)
+end
 
 function entidadesBol.actualizarJugadores(dt)
+    --world:update(dt)
     entidadesBol.matarJugadores()
     for i=1,#entidadesBol.jugadores do
+        entidadesBol.jugadores[i].posY=entidadesBol.jugadores[i].body:getY()
+        entidadesBol.jugadores[i].posX=entidadesBol.jugadores[i].body:getX()
+        entidadesBol.jugadores[i].posY=entidadesBol.jugadores[i].posY-entidadesBol.jugadores[i].magnitud*math.sin(entidadesBol.jugadores[i].angulo-ssangulo)*dt
+        entidadesBol.jugadores[i].posX=entidadesBol.jugadores[i].posX-entidadesBol.jugadores[i].magnitud*math.cos(entidadesBol.jugadores[i].angulo-ssangulo)*dt
+        --restar valores absolutos podria ser mejor
+        if entidadesBol.jugadores[i].magnitud>0 then
+            entidadesBol.jugadores[i].magnitud=entidadesBol.jugadores[i].magnitud-entidadesBol.jugadores[i].antvelocidad*dt
+        elseif entidadesBol.jugadores[i].magnitud<0 then
+            entidadesBol.jugadores[i].magnitud=entidadesBol.jugadores[i].magnitud+entidadesBol.jugadores[i].antvelocidad*dt
+        end
+        if love.keyboard.isDown(entidadesBol.jugadores[i].input.adelante) then
+            entidadesBol.jugadores[i].magnitud=entidadesBol.jugadores[i].magnitud+entidadesBol.jugadores[i].auvel*dt
+            if entidadesBol.jugadores[i].magnitud>entidadesBol.jugadores[i].velocidad then
+                entidadesBol.jugadores[i].magnitud=entidadesBol.jugadores[i].velocidad
+            end
+        elseif love.keyboard.isDown(entidadesBol.jugadores[i].input.atras) then
+            entidadesBol.jugadores[i].magnitud=entidadesBol.jugadores[i].magnitud-entidadesBol.jugadores[i].auvel*dt-20*dt
+            if entidadesBol.jugadores[i].magnitud<-entidadesBol.jugadores[i].velocidad then
+                entidadesBol.jugadores[i].magnitud=-entidadesBol.jugadores[i].velocidad
+            end
+        elseif love.keyboard.isDown(entidadesBol.jugadores[i].input.izquierda) then
+            entidadesBol.jugadores[i].angulo=entidadesBol.jugadores[i].angulo-math.rad(100)*dt
+        elseif love.keyboard.isDown(entidadesBol.jugadores[i].input.derecha) then
+            entidadesBol.jugadores[i].angulo=entidadesBol.jugadores[i].angulo+math.rad(100)*dt
+        end
+        
         entidadesBol.jugadores[i].energia=entidadesBol.jugadores[i].energia+entidadesBol.jugadores[i].ratio*dt
         if entidadesBol.jugadores[i].energia>entidadesBol.jugadores[i].limite then
             entidadesBol.jugadores[i].energia=entidadesBol.jugadores[i].limite
         end
+        entidadesBol.jugadores[i].eparticula=entidadesBol.jugadores[i].eparticula+1*dt
+        if entidadesBol.jugadores[i].eparticula>1 then
+            entidadesBol.jugadores[i].eparticula=1
+        end
+        if entidadesBol.jugadores[i].magnitud == entidadesBol.jugadores[i].velocidad and entidadesBol.jugadores[i].eparticula>=1 then
+            entidadesBol.añadirParticulas(entidadesBol.jugadores[i],10)
+            entidadesBol.jugadores[i].eparticula=entidadesBol.jugadores[i].eparticula-9.4*dt
+        end
         if entidadesBol.jugadores[i].banderaa then
             entidadesBol.puntuaciones[entidadesBol.jugadores[i].equipo].puntos=entidadesBol.puntuaciones[entidadesBol.jugadores[i].equipo].puntos+1*dt
         end
+        entidadesBol.jugadores[i].body:setX(entidadesBol.jugadores[i].posX)
+        entidadesBol.jugadores[i].body:setY(entidadesBol.jugadores[i].posY)
     end
 end
+function entidadesBol.keypressed( key,scancode,isrepeat)
+    -- body
+    for i=1,#entidadesBol.jugadores do
+        if key==entidadesBol.jugadores[i].input.disparar then
+            entidadesBol.disparar(entidadesBol.jugadores[i])
+        end
+        if key==entidadesBol.jugadores[i].input.mina then
+            entidadesBol.plantarMina(entidadesBol.jugadores[i])
+        end
+    end
+end
+
+function entidadesBol.añadirParticulas(jugadorr,duracion)
+    local ju={}
+    ju.posX=jugadorr.posX
+    ju.posY=jugadorr.posY
+    ju.angulo=jugadorr.angulo
+    ju.vida=duracion
+    ju.vidamax=duracion+0
+    table.insert( entidadesBol.particulas, ju)
+end 
 
 
 function entidadesBol.estaDentro(exx,eyy,entt,xa,ya)
@@ -326,8 +429,8 @@ function entidadesBol.desactivarPu(tipo,ply)
 end
 
 function entidadesBol.spawnearJugadores(ent)
-    ent.posX=entidadesBol.spawns[ent.equipo].x
-    ent.posY=entidadesBol.spawns[ent.equipo].y
+    ent.body:setX(entidadesBol.spawns[ent.equipo].x)
+    ent.body:setY(entidadesBol.spawns[ent.equipo].y)
     ent.banderaa=false
     ent.energia=100
     ent.limite=100
@@ -342,16 +445,6 @@ function entidadesBol.dibujar(eex,eey,canv,xa,ya)
     if canv~=nil then
         love.graphics.setCanvas(canv)
     end
-    for i=1,#entidadesBol.proyectiles do
-        if entidadesBol.estaDentro(eex,eey,entidadesBol.proyectiles[i],xa,ya) then
-            local fx=entidadesBol.proyectiles[i].posX-eex
-            local fy=entidadesBol.proyectiles[i].posY-eey
-            love.graphics.draw(entidadesBol.proyectiles[i].imagen,fx,fy,entidadesBol.proyectiles[i].angulo,entidadesBol.proyectiles[i].tamanho,entidadesBol.proyectiles[i].tamanho,entidadesBol.proyectiles[i].medX,entidadesBol.proyectiles[i].medY,0,0)
-            --dibuja la caja de colision
-        end
-    
-    end
-    
     --dibuja los power Ups
     for i=1,#entidadesBol.powerUps do
         if entidadesBol.estaDentro(eex,eey,entidadesBol.powerUps[i],xa,ya) then
@@ -368,6 +461,29 @@ function entidadesBol.dibujar(eex,eey,canv,xa,ya)
         end
     end
 
+    for i=1,#entidadesBol.proyectiles do
+        if entidadesBol.estaDentro(eex,eey,entidadesBol.proyectiles[i],xa,ya) then
+            local fx=entidadesBol.proyectiles[i].posX-eex
+            local fy=entidadesBol.proyectiles[i].posY-eey
+            love.graphics.draw(entidadesBol.proyectiles[i].imagen,fx,fy,entidadesBol.proyectiles[i].angulo,entidadesBol.proyectiles[i].tamanho,entidadesBol.proyectiles[i].tamanho,entidadesBol.proyectiles[i].medX,entidadesBol.proyectiles[i].medY,0,0)
+            --dibuja la caja de colision
+        end
+    
+    end
+    --dibuja los efectos
+    for i=1,#entidadesBol.particulas do
+        if entidadesBol.estaDentro(eex,eey,entidadesBol.particulas[i],xa,ya) then
+            local fx=entidadesBol.particulas[i].posX-eex
+            local fy=entidadesBol.particulas[i].posY-eey
+            love.graphics.setColor(255,255,255,entidadesBol.particulas[i].vida/entidadesBol.particulas[i].vidamax)
+            love.graphics.draw(llantas,fx,fy,entidadesBol.particulas[i].angulo,1,1,20,26,0,0)
+            --dibuja la caja de colision
+        end
+    
+    end
+
+    love.graphics.setColor(255,255,255,1)
+
     --dibuja banderas
     for i=1,#entidadesBol.banderas do
         if entidadesBol.banderas[i].is then
@@ -382,9 +498,9 @@ function entidadesBol.dibujar(eex,eey,canv,xa,ya)
     --dibuja a los jugadores
     for i=1,#entidadesBol.jugadores do
             if entidadesBol.estaDentro(eex,eey,entidadesBol.jugadores[i],xa,ya) then
-                local fx=entidadesBol.jugadores[i].posX-eex
-                local fy=entidadesBol.jugadores[i].posY-eey
-                love.graphics.draw(entidadesBol.jugadores[i].imagen,fx,fy,entidadesBol.jugadores[i].angulo,entidadesBol.jugadores[i].tamanho,entidadesBol.jugadores[i].tamanho,entidadesBol.jugadores[i].medX,entidadesBol.jugadores[i].medY,0,0)
+                entidadesBol.jugadores[i].rposX=entidadesBol.jugadores[i].posX-eex
+                entidadesBol.jugadores[i].rposY=entidadesBol.jugadores[i].posY-eey
+                love.graphics.draw(entidadesBol.jugadores[i].imagen,entidadesBol.jugadores[i].rposX,entidadesBol.jugadores[i].rposY,entidadesBol.jugadores[i].angulo,entidadesBol.jugadores[i].tamanho,entidadesBol.jugadores[i].tamanho,entidadesBol.jugadores[i].medX,entidadesBol.jugadores[i].medY,0,0)
                 --dibuja la caja de colision
             end
     end
