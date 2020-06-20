@@ -11,6 +11,7 @@ local caja=love.graphics.newImage("//assets/crateMetal.png")
 local cajam=love.graphics.newImage("//assets/crateWood.png")
 function entidadesCTF.agregarEquipo()
 local equipo={}
+
 table.insert(entidadesCTF.equipos, equipo)
 end
 
@@ -111,7 +112,7 @@ function entidadesCTF.agregarProyectil(nEqu,posX,posY,strimagen,imagen,angulo,ma
     end
     table.insert( entidadesCTF.proyectiles,ju)
 end
-
+local son =require(".//sonido")
 function entidadesCTF.disparar(rrr)
     --crea un proyectil con el angulo y direccion
     local px=rrr.posX-24*math.cos(rrr.angulo-ssangulo)
@@ -119,6 +120,7 @@ function entidadesCTF.disparar(rrr)
     --nEqu,posX,posY,strimagen,imagen,angulo,magnitud,danho,vida,powerUp,medX,medY,tamanho
     if rrr.energia>rrr.danhoproyectil then
         entidadesCTF.agregarProyectil(rrr.equipo,px,py,1,nil,rrr.angulo,300,rrr.danhoproyectil,10,"ninguno",4,7,1,1)
+        son.play(son.sun[3])
         rrr.energia=rrr.energia-rrr.danhoproyectil
     end
 end
@@ -127,6 +129,7 @@ function entidadesCTF.plantarMina(rrr)
     if rrr.energia>rrr.danhomina then
         entidadesCTF.agregarProyectil(rrr.equipo,rrr.posX,rrr.posY,1,nil,0,0,rrr.danhomina,10,"ninguno",12,12,1,2)
         rrr.energia=rrr.energia-rrr.danhomina
+        son.play(son.mina[1])
     end
 end
 
@@ -222,6 +225,7 @@ function entidadesCTF.detectarColision(dt)
                     --print(entidadesCTF.jugadores[i].eqimpac)
                     print(entidadesCTF.jugadores[i].vida)
                     entidadesCTF.proyectiles[j].vida=entidadesCTF.proyectiles[j].vida-entidadesCTF.jugadores[i].danho
+                    son.play(son.imp[1])
                     print(entidadesCTF.jugadores[i].vida)
                 end
             end
@@ -273,6 +277,7 @@ end
 function entidadesCTF.matarJugadores()
     for i=1,#entidadesCTF.jugadores do
         if entidadesCTF.jugadores[i].vida<1 then
+            son.play(son.dead[1])
             if entidadesCTF.jugadores[i].banderaa then
             entidadesCTF.banderas[entidadesCTF.jugadores[i].band].posX=entidadesCTF.jugadores[i].posX
             entidadesCTF.banderas[entidadesCTF.jugadores[i].band].posY=entidadesCTF.jugadores[i].posY

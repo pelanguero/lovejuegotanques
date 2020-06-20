@@ -105,7 +105,7 @@ function entidadesBol.agregarJugador(nEqu,posX,posY,strimagen,imagen,angulo,magn
     ju.banderaa=false
     ju.band=0
     ju.body=love.physics.newBody(world,ju.posX,ju.posY,"dynamic")
-    ju.body:setBullet(true)
+    --ju.body:setBullet(true)
     ju.shape=love.physics.newRectangleShape(40,40)
     ju.fixture=love.physics.newFixture(ju.body,ju.shape,1)
     table.insert( entidadesBol.jugadores,ju)
@@ -142,7 +142,7 @@ function entidadesBol.disparar(rrr)
     local py=rrr.posY-24*math.sin(rrr.angulo-ssangulo)
     --nEqu,posX,posY,strimagen,imagen,angulo,magnitud,danho,vida,powerUp,medX,medY,tamanho
     if rrr.energia>rrr.danhoproyectil then
-        entidadesBol.agregarProyectil(rrr.equipo,px,py,1,nil,rrr.angulo,300,rrr.danhoproyectil,10,"ninguno",4,7,1,1)
+        entidadesBol.agregarProyectil(rrr.equipo,px,py,1,nil,rrr.angulo,600,rrr.danhoproyectil,10,"ninguno",4,7,1,1)
         rrr.energia=rrr.energia-rrr.danhoproyectil
     end
 end
@@ -225,10 +225,6 @@ function entidadesBol.actualizarProyectiles(dt)
         end
     end
 
-    
-
-
-
 end
 function entidadesBol.actualizarphy(dt)
     world:update(dt)
@@ -263,12 +259,7 @@ function entidadesBol.actualizarJugadores(dt)
         elseif love.keyboard.isDown(entidadesBol.jugadores[i].input.derecha) then
             entidadesBol.jugadores[i].angulo=entidadesBol.jugadores[i].angulo+math.rad(100)*dt
         end
-        if love.keyboard.isDown(entidadesBol.jugadores[i].input.disparar) then
-            entidadesBol.disparar(entidadesBol.jugadores[i])
-        end
-        if love.keyboard.isDown(entidadesBol.jugadores[i].input.mina) then
-            entidadesBol.plantarMina(entidadesBol.jugadores[i])
-        end
+        
         entidadesBol.jugadores[i].energia=entidadesBol.jugadores[i].energia+entidadesBol.jugadores[i].ratio*dt
         if entidadesBol.jugadores[i].energia>entidadesBol.jugadores[i].limite then
             entidadesBol.jugadores[i].energia=entidadesBol.jugadores[i].limite
@@ -288,6 +279,18 @@ function entidadesBol.actualizarJugadores(dt)
         entidadesBol.jugadores[i].body:setY(entidadesBol.jugadores[i].posY)
     end
 end
+function entidadesBol.keypressed( key,scancode,isrepeat)
+    -- body
+    for i=1,#entidadesBol.jugadores do
+        if key==entidadesBol.jugadores[i].input.disparar then
+            entidadesBol.disparar(entidadesBol.jugadores[i])
+        end
+        if key==entidadesBol.jugadores[i].input.mina then
+            entidadesBol.plantarMina(entidadesBol.jugadores[i])
+        end
+    end
+end
+
 function entidadesBol.añadirParticulas(jugadorr,duracion)
     local ju={}
     ju.posX=jugadorr.posX
@@ -442,6 +445,22 @@ function entidadesBol.dibujar(eex,eey,canv,xa,ya)
     if canv~=nil then
         love.graphics.setCanvas(canv)
     end
+    --dibuja los power Ups
+    for i=1,#entidadesBol.powerUps do
+        if entidadesBol.estaDentro(eex,eey,entidadesBol.powerUps[i],xa,ya) then
+            local fx=entidadesBol.powerUps[i].posX-eex
+            local fy=entidadesBol.powerUps[i].posY-eey
+            if entidadesBol.powerUps[i].vida>61 then
+                love.graphics.draw(caja,fx,fy,0,1,1,14,14,0,0)
+            else
+                love.graphics.setColor(0,255,0)
+                --math.rad(entidadesBol.powerUps[i].vida*60)
+                love.graphics.arc("fill",fx,fy,30,0,math.rad(entidadesBol.powerUps[i].vida*6))
+                love.graphics.setColor(255,255,255)
+            end
+        end
+    end
+
     for i=1,#entidadesBol.proyectiles do
         if entidadesBol.estaDentro(eex,eey,entidadesBol.proyectiles[i],xa,ya) then
             local fx=entidadesBol.proyectiles[i].posX-eex
@@ -464,22 +483,6 @@ function entidadesBol.dibujar(eex,eey,canv,xa,ya)
     end
 
     love.graphics.setColor(255,255,255,1)
-
-    --dibuja los power Ups
-    for i=1,#entidadesBol.powerUps do
-        if entidadesBol.estaDentro(eex,eey,entidadesBol.powerUps[i],xa,ya) then
-            local fx=entidadesBol.powerUps[i].posX-eex
-            local fy=entidadesBol.powerUps[i].posY-eey
-            if entidadesBol.powerUps[i].vida>61 then
-                love.graphics.draw(caja,fx,fy,0,1,1,14,14,0,0)
-            else
-                love.graphics.setColor(0,255,0)
-                --math.rad(entidadesBol.powerUps[i].vida*60)
-                love.graphics.arc("fill",fx,fy,30,0,math.rad(entidadesBol.powerUps[i].vida*6))
-                love.graphics.setColor(255,255,255)
-            end
-        end
-    end
 
     --dibuja banderas
     for i=1,#entidadesBol.banderas do

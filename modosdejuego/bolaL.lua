@@ -1,4 +1,4 @@
-local bolaL={temud=require "../modosdejuego/prron",entidades=require "../entidades/entidadesBol",mapa=require "../mapa/mapaTS",puntosEquipos={},mdx=600,mdy=300,ancho=1200,alto=600}
+
 --corregir a nuevos parametros
 local ssangulo=math.rad(90)
 local ancho=0
@@ -6,9 +6,12 @@ local alto=0
 local inputUno={}
 local inputDos={}
 
-function bolaL.new()
+function bolaL.new(ancc,altt)
     bolaL.mapa.new("../mapas/bola","//assets/terrainTiles_default.png")
-    
+    bolaL.ancho=ancc
+    bolaL.alto=altt
+    bolaL.mdx=math.floor(ancc/2)
+    bolaL.mdy=math.floor(altt/2)
     inputUno.adelante="w"
     inputUno.atras="s"
     inputUno.derecha="d"
@@ -25,7 +28,7 @@ function bolaL.new()
     inputDos.mina="o"
     ancho=bolaL.mapa.tablamapa.width*64
     alto=bolaL.mapa.tablamapa.height*64
-    bolaL.temud.new(bolaL.mapa)
+    bolaL.temud.new(bolaL.mapa,ancc,altt)
     for i=1,#bolaL.mapa.puntos do 
        if bolaL.mapa.puntos[i].val==1 then
          bolaL.entidades.agregarSpawn(bolaL.mapa.puntos[i].x,bolaL.mapa.puntos[i].y)
@@ -79,7 +82,7 @@ end
 
 end
 
-function bolaL.inputP(dt,jugador,avanzar,retroceder,izquierda,derecha,disparar,mina)
+function bolaL.inputP(dt,jugador,avanzar,retroceder,izquierda,derecha,disparar,mina,pusa)
     if love.keyboard.isDown(avanzar) then
         bolaL.entidades.jugadores[jugador].posY=bolaL.entidades.jugadores[jugador].posY-bolaL.entidades.jugadores[jugador].magnitud*math.sin(bolaL.entidades.jugadores[jugador].angulo-ssangulo)*dt
         bolaL.entidades.jugadores[jugador].posX=bolaL.entidades.jugadores[jugador].posX-bolaL.entidades.jugadores[jugador].magnitud*math.cos(bolaL.entidades.jugadores[jugador].angulo-ssangulo)*dt
@@ -97,36 +100,21 @@ function bolaL.inputP(dt,jugador,avanzar,retroceder,izquierda,derecha,disparar,m
     if love.keyboard.isDown(mina) then
         bolaL.entidades.plantarMina(bolaL.entidades.jugadores[jugador])
     end
+    if love.keyboard.isDown(pusa) then
+        inter.even = 3
+    end 
+
 end
 
-function bolaL.inputPd(dt,jugador,joy)
-    if joy:getAxis(2)<0 then
-        bolaL.entidades.jugadores[jugador].posY=bolaL.entidades.jugadores[jugador].posY-bolaL.entidades.jugadores[jugador].magnitud*math.sin(bolaL.entidades.jugadores[jugador].angulo-ssangulo)*dt
-        bolaL.entidades.jugadores[jugador].posX=bolaL.entidades.jugadores[jugador].posX-bolaL.entidades.jugadores[jugador].magnitud*math.cos(bolaL.entidades.jugadores[jugador].angulo-ssangulo)*dt
-    elseif joy:getAxis(2)>0 then
-        bolaL.entidades.jugadores[jugador].posY=bolaL.entidades.jugadores[jugador].posY+bolaL.entidades.jugadores[jugador].magnitud*math.sin(bolaL.entidades.jugadores[jugador].angulo-ssangulo)*dt
-        bolaL.entidades.jugadores[jugador].posX=bolaL.entidades.jugadores[jugador].posX+bolaL.entidades.jugadores[jugador].magnitud*math.cos(bolaL.entidades.jugadores[jugador].angulo-ssangulo)*dt
-    elseif joy:getAxis(1)<0 then
-        bolaL.entidades.jugadores[jugador].angulo=bolaL.entidades.jugadores[jugador].angulo-math.rad(100)*dt
-    elseif joy:getAxis(1)>0 then
-        bolaL.entidades.jugadores[jugador].angulo=bolaL.entidades.jugadores[jugador].angulo+math.rad(100)*dt
-    end
-    if joy:isDown(8) then
-    bolaL.entidades.disparar(bolaL.entidades.jugadores[jugador])
-    end
-    if joy:isDown(7) then
-        bolaL.entidades.plantarMina(bolaL.entidades.jugadores[jugador])
-    end
-end
 
-function bolaL.proupdate(dt,joy)
---bolaL.inputP(dt,1,"w","s","a","d","q","e")
---bolaL.inputPd(dt,2,joy)
-bolaL.entidades.actualizarphy(dt)
---bolaL.corregirPosicion(bolaL.entidades.jugadores[1])
 bolaL.entidades.actualizarJugadores(dt)
 bolaL.entidades.actualizarProyectiles(dt)
 bolaL.entidades.detectarColision(dt)
+end
+
+function bolaL.keypressed( key,scancode,isrepeat)
+    -- body
+    bolaL.entidades.keypressed( key,scancode,isrepeat)
 end
 
 return bolaL
