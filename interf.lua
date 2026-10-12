@@ -8,7 +8,8 @@ interf = {
     -- pantallas
     MENU = 1, CONFIG = 2, PAUSA = 3, JUGANDO = 4, FIN = 5, ONLINE = 6, ESPERA = 7,
     even = 1,
-    ini = {jugadores = 1, modo = 2, numMuertes = 20, capturas = 3, rondas = 1, time = 120},
+    -- pantalla: 1 = dividida en una ventana, 2 = una ventana por jugador
+    ini = {jugadores = 1, modo = 2, pantalla = 1, numMuertes = 20, capturas = 3, rondas = 1, time = 120},
     -- nil en partida local; "anfitrion" o "cliente" en linea
     enLinea = nil,
     ipDestino = "127.0.0.1",
@@ -38,6 +39,7 @@ local colores = {
 }
 
 local modos = {"Team Slayer", "Capture The Flag", "King Of The Hill", "Crazy Ball"}
+local pantallas = {"Dividida", "Ventanas separadas"}
 
 local ANCHO_BOTON = 300
 local ALTO_FILA = 40
@@ -141,6 +143,7 @@ paginas[interf.CONFIG] = function()
         interf.subtitulo = "En linea: el jugador 2 esta conectado"
     else
         table.insert(lista, selector("Jugadores", "jugadores", 1, 1, 4))
+        table.insert(lista, opciones("Pantalla", "pantalla", pantallas))
     end
     local modo = interf.ini.modo
     if modo == 1 then
@@ -157,9 +160,12 @@ paginas[interf.CONFIG] = function()
     construir(lista)
 end
 
+-- alIniciar devuelve "esperando" si la partida empieza mas tarde
+-- (ventanas separadas: falta que se conecte la segunda ventana)
 function paginas.iniciarPartida()
     local ok, err = true, nil
     if interf.alIniciar then ok, err = pcall(interf.alIniciar, interf.ini) end
+    if ok and err == "esperando" then return end
     if ok then
         interf.irA(interf.JUGANDO)
     else
@@ -190,7 +196,7 @@ end
 paginas[interf.PAUSA] = function()
     titulo = nuevoTexto("Pausa", fontTitulo)
     if interf.enLinea then
-        interf.subtitulo = "La partida en linea sigue corriendo"
+        interf.subtitulo = "La partida sigue corriendo"
     end
     construir({
         boton("Seguir jugando", function() interf.irA(interf.JUGANDO) end),

@@ -5,9 +5,69 @@ local red=require "red"
 
 local ANCHO, ALTO = 1200, 600
 
+------------------------------------------------------------------ ventanas separadas
+-- LOVE solo maneja una ventana por proceso: la segunda ventana es otra
+-- instancia del juego, abierta con "--ventana2 <puerto>", que se conecta
+-- a esta por 127.0.0.1 igual que un cliente en linea.
+
+-- Ancho de cada ventana para que las dos quepan lado a lado, y su posicion
+local function geometriaVentana(numero)
+    local dw, dh = love.window.getDesktopDimensions()
+    local w = math.min(ANCHO, math.floor(dw / 2))
+    local x = math.floor((dw - 2 * w) / 2) + (numero - 1) * w
+    local y = math.max(0, math.floor((dh - ALTO) / 2))
+    return w, x, y
+end
+
+local function colocarVentana(numero)
+    local w, x, y = geometriaVentana(numero)
+    if love.graphics.getWidth() ~= w then
+        love.window.updateMode(w, ALTO)
+    end
+    love.window.setPosition(x, y)
+    love.window.setTitle("Tanks - Jugador " .. numero)
+end
+
+local function restaurarVentana()
+    if love.graphics.getWidth() ~= ANCHO then
+        love.window.updateMode(ANCHO, ALTO)
+    end
+    love.window.setTitle("Tanks")
+end
+
+local function comillas(s)
+    if love.system.getOS() == "Windows" then return '"' .. s .. '"' end
+    return "'" .. s:gsub("'", "'\\''") .. "'"
+end
+
+-- Abre otra instancia del juego como ventana del jugador 2
+local function abrirSegundaVentana()
+    local comando
+    if love.filesystem.isFused() then
+        comando = comillas(love.filesystem.getSource())
+    else
+        comando = comillas(arg[-2] or "love") .. " " .. comillas(love.filesystem.getSource())
+    end
+    comando = comando .. " --ventana2 " .. red.PUERTO_LOCAL
+    if love.system.getOS() == "Windows" then
+        os.execute('start "" ' .. comando)
+    else
+        os.execute(comando .. " &")
+    end
+end
+
+local function iniciarVentanas(ini)
+    local ok, err = online.crearLocal()
+    if not ok then error("no se pudo abrir el puerto local " .. red.PUERTO_LOCAL .. " (" .. tostring(err) .. ")") end
+    colocarVentana(1)
+    abrirSegundaVentana()
+    inter.esperar("Abriendo ventana", "Esperando la ventana del jugador 2")
+    return "esperando"
+end
+
 -- En linea el anfitrion es el jugador 1 y el cliente el jugador 2
 local function textoResultado()
-    if not online.activo() then
+    if not online.activo() or online.esLocal() then
         return "Gana el Equipo "..juego.ganador
     end
     local mio = online.esAnfitrion() and 1 or 2
@@ -20,7 +80,9 @@ function love.load(args)
         love.keyboard.setKeyRepeat(true)
         inter.alIniciar = function(ini)
             if online.esAnfitrion() then
-                online.iniciarPartida(ini,ANCHO,ALTO)
+                online.iniciarPartida(ini,love.graphics.getDimensions())
+            elseif ini.pantalla==2 then
+                return iniciarVentanas(ini)
             else
                 juego.vistaJugador=nil
                 juego.nuevaPartida(ini,ANCHO,ALTO)
@@ -33,10 +95,22 @@ function love.load(args)
         inter.alVolverAlMenu = function()
             online.salir()
             juego.jugando=false
+            -- la segunda ventana solo existe mientras dura la partida
+            if inter.esVentana2 then love.event.quit(0) return end
+            restaurarVentana()
         end
 
         online.alConectar = function()
-            if online.esAnfitrion() then
+            if online.esLocal() then
+                if online.esAnfitrion() then
+                    inter.enLinea = "anfitrion"
+                    online.iniciarPartida(inter.ini,love.graphics.getDimensions())
+                    inter.irA(inter.JUGANDO)
+                else
+                    inter.enLinea = "cliente"
+                    inter.esperar("Jugador 2", "Esperando que empiece la partida")
+                end
+            elseif online.esAnfitrion() then
                 inter.enLinea = "anfitrion"
                 inter.irA(inter.CONFIG)
             else
@@ -44,19 +118,25 @@ function love.load(args)
                 inter.esperar("Conectado", "Esperando a que el anfitrion inicie la partida")
             end
         end
-        online.alDesconectar = function()
+        online.alDesconectar = function(eraLocal)
             juego.jugando=false
+            if eraLocal and inter.esVentana2 then
+                -- la ventana del jugador 1 se cerro o volvio al menu
+                love.event.quit(0)
+                return
+            end
             inter.enLinea=nil
             if inter.even==inter.ESPERA and inter.tituloEspera=="Conectando" then
                 inter.irA(inter.ONLINE)
                 inter.mensajeError="No se pudo conectar con el anfitrion"
             elseif inter.even~=inter.MENU and inter.even~=inter.ONLINE then
-                inter.mostrarResultado("Conexion perdida","El otro jugador se desconecto",false)
+                inter.mostrarResultado("Conexion perdida",
+                    eraLocal and "Se cerro la ventana del jugador 2" or "El otro jugador se desconecto",false)
             end
         end
         online.alIniciarCliente = function(config)
             juego.vistaJugador=2
-            local ok, err = pcall(juego.nuevaPartida,config,ANCHO,ALTO)
+            local ok, err = pcall(juego.nuevaPartida,config,love.graphics.getDimensions())
             if ok then
                 inter.irA(inter.JUGANDO)
             else
@@ -66,9 +146,18 @@ function love.load(args)
         end
 
         inter.irA(inter.MENU)
-        -- love . --pruebas : corre las pruebas automaticas de los modos
-        for _, a in ipairs(args or {}) do
+        args = args or {}
+        for i, a in ipairs(args) do
+            -- love . --pruebas : corre las pruebas automaticas de los modos
             if a == "--pruebas" then require("pruebas.modos").correr() end
+            -- segunda ventana de la pantalla dividida (la abre el juego)
+            if a == "--ventana2" then
+                inter.esVentana2 = true
+                colocarVentana(2)
+                local ok = online.unirseLocal(tonumber(args[i+1]))
+                if not ok then love.event.quit(1) return end
+                inter.esperar("Conectando", "Conectando con la ventana del jugador 1...")
+            end
         end
 end
 

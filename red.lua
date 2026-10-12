@@ -3,7 +3,8 @@
 -- textos, booleanos y subtablas; nunca se ejecuta codigo recibido.
 local enet = require "enet"
 
-local red = {PUERTO = 22122, host = nil, par = nil, rol = nil, pendiente = nil}
+-- PUERTO_LOCAL: pantalla dividida en ventanas separadas (solo esta maquina)
+local red = {PUERTO = 22122, PUERTO_LOCAL = 22123, host = nil, par = nil, rol = nil, pendiente = nil}
 
 -- canales: 0 = confiable (eventos), 1 = no confiable (estado frecuente)
 local CANALES = 2
@@ -93,10 +94,11 @@ end
 
 ------------------------------------------------------------------ conexion
 
-function red.hospedar(puerto)
+-- direccion: "*" acepta conexiones de la red; "127.0.0.1" solo de esta maquina
+function red.hospedar(puerto, direccion)
     red.cerrar()
     -- un solo par: el segundo jugador
-    local host, err = enet.host_create("*:" .. (puerto or red.PUERTO), 1, CANALES)
+    local host, err = enet.host_create((direccion or "*") .. ":" .. (puerto or red.PUERTO), 1, CANALES)
     if not host then return false, err or "no se pudo abrir el puerto" end
     red.host, red.rol = host, "anfitrion"
     return true

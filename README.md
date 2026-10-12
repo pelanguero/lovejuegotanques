@@ -10,6 +10,16 @@ juego de tanques en love lua 2d
 
 Esc pausa la partida.
 
+## Pantalla dividida o ventanas separadas
+
+En **Jugar**, la opcion **Pantalla** elige entre:
+
+- **Dividida**: los dos jugadores comparten una ventana partida a la mitad.
+- **Ventanas separadas**: el juego abre una segunda ventana (otra instancia del juego,
+  conectada por 127.0.0.1, puerto 22123) y cada jugador ve su tanque en su propia ventana.
+  Las ventanas se colocan lado a lado. Los controles funcionan sin importar que ventana
+  tenga el foco. Al volver al menu o cerrar la primera ventana, la segunda se cierra sola.
+
 ## Modos de juego
 
 - **Team Slayer**: gana el primer equipo que llega a las muertes configuradas.
