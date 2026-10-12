@@ -105,9 +105,11 @@ function online.iniciarPartida(ini, ancho, alto)
     juego.vistaJugador = 1
     -- en ventanas separadas el jugador 2 conserva sus teclas (I J K L U O)
     juego.alNuevaRonda = (not online.esLocal()) and conectarJugadorRemoto or nil
-    juego.nuevaPartida(ini, ancho, alto)
     local config = {}
     for k, v in pairs(ini) do config[k] = v end
+    -- el jugador 2 es una persona: sin bots aunque el menu local tenga uno elegido
+    config.rival = 1
+    juego.nuevaPartida(config, ancho, alto)
     red.enviar({tipo = "inicio", config = config}, true)
 end
 

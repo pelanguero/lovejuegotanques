@@ -205,6 +205,63 @@ local function probarVictoria()
     check(nm, "dibujar aviso entre rondas", okd, errd)
 end
 
+------------------------------------------------------------ bots
+
+local function puntos(i)
+    local p = juego.mododejuego.entidades.puntuaciones[i]
+    return p and p.puntos or 0
+end
+
+local function probarBots()
+    local bot = require "bot"
+    math.randomseed(7)
+    local sinFin = {time = 600, numMuertes = 1000, capturas = 1000}
+    -- puntos minimos que el bot dificil debe sumar en 90 s contra un rival quieto
+    local metas = {5, 1, 30, 30}
+    for modo = 1, 4 do
+        local nm = nombres[modo]
+        for nivel = 1, 3 do
+            sinFin.rival = nivel + 1
+            local ok, err = pcall(function()
+                juego.nuevaPartida(config(modo, sinFin), 1200, 600)
+                correrPartida(30)
+            end)
+            check(nm, "bot " .. bot.NIVELES[nivel] .. " juega 30s sin error", ok, err)
+        end
+        sinFin.rival = 4
+        juego.nuevaPartida(config(modo, sinFin), 1200, 600)
+        correrPartida(90)
+        check(nm, "bot dificil gana a un rival quieto", puntos(2) >= metas[modo] and puntos(2) > puntos(1),
+            string.format("puntos %.1f - %.1f", puntos(1), puntos(2)))
+        -- contra un bot el jugador 1 juega a pantalla completa
+        local okd, errd = pcall(function()
+            juego.vistaJugador = 1
+            love.graphics.setCanvas(love.graphics.newCanvas(1200, 600)); juego.dibujarCapas(); love.graphics.setCanvas()
+        end)
+        juego.vistaJugador = nil
+        check(nm, "dibujar contra bot (pantalla completa)", okd, errd)
+    end
+
+    -- bot contra bot: el de mas nivel debe ganar la mayoria de los modos.
+    -- (CTF entre bots suele empatar: el mapa es simetrico y es una carrera)
+    for _, par in ipairs({{3, 1}, {2, 1}, {3, 2}}) do
+        local fuerte, debil = par[1], par[2]
+        local ganadas, perdidas = 0, 0
+        for modo = 1, 4 do
+            sinFin.rival = fuerte + 1
+            juego.nuevaPartida(config(modo, sinFin), 1200, 600)
+            juego.bots[2] = bot.nuevo(juego.mododejuego, modo, 1, debil)
+            correrPartida(120)
+            if puntos(2) > puntos(1) then ganadas = ganadas + 1 end
+            if puntos(2) < puntos(1) then perdidas = perdidas + 1 end
+            print(string.format("%s vs %s en %s: %.1f - %.1f", bot.NIVELES[debil], bot.NIVELES[fuerte],
+                nombres[modo], puntos(1), puntos(2)))
+        end
+        check("Bots", bot.NIVELES[fuerte] .. " le gana a " .. bot.NIVELES[debil], ganadas >= 2 and perdidas <= 1,
+            string.format("gana %d, pierde %d de 4 modos", ganadas, perdidas))
+    end
+end
+
 ------------------------------------------------------------ red (serializacion)
 
 local function probarRed()
@@ -228,8 +285,13 @@ local function probarRed()
 end
 
 function pruebas.correr()
+    -- las teclas virtuales de los bots siguen pasando por bot.lua
+    local isDownBots = love.keyboard.isDown
     love.keyboard.isDown = function(...)
-        for _, k in ipairs({...}) do if teclas[k] then return true end end
+        for _, k in ipairs({...}) do
+            if teclas[k] then return true end
+            if type(k) == "string" and k:sub(1, 4) == "bot:" and isDownBots(k) then return true end
+        end
         return false
     end
     love.audio.play = function() end
@@ -242,6 +304,8 @@ function pruebas.correr()
     end
     local ok, err = pcall(probarVictoria)
     if not ok then check("Partida", "reglas de victoria", false, tostring(err)) end
+    ok, err = pcall(probarBots)
+    if not ok then check("Bots", "probar bots", false, tostring(err)) end
     ok, err = pcall(probarRed)
     if not ok then check("Red", "serializacion", false, tostring(err)) end
 

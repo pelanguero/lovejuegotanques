@@ -9,7 +9,8 @@ interf = {
     MENU = 1, CONFIG = 2, PAUSA = 3, JUGANDO = 4, FIN = 5, ONLINE = 6, ESPERA = 7,
     even = 1,
     -- pantalla: 1 = dividida en una ventana, 2 = una ventana por jugador
-    ini = {jugadores = 1, modo = 2, pantalla = 1, numMuertes = 20, capturas = 3, rondas = 1, time = 120},
+    -- rival: 1 = jugador 2 humano, 2..4 = bot facil, normal o dificil
+    ini = {jugadores = 1, modo = 2, rival = 1, pantalla = 1, numMuertes = 20, capturas = 3, rondas = 1, time = 120},
     -- nil en partida local; "anfitrion" o "cliente" en linea
     enLinea = nil,
     ipDestino = "127.0.0.1",
@@ -40,6 +41,7 @@ local colores = {
 
 local modos = {"Team Slayer", "Capture The Flag", "King Of The Hill", "Crazy Ball"}
 local pantallas = {"Dividida", "Ventanas separadas"}
+local rivales = {"Jugador 2", "Bot facil", "Bot normal", "Bot dificil"}
 
 local ANCHO_BOTON = 300
 local ALTO_FILA = 40
@@ -139,11 +141,16 @@ end
 paginas[interf.CONFIG] = function()
     titulo = nuevoTexto("Nueva partida", fontTitulo)
     local lista = {opciones("Modo de juego", "modo", modos)}
+    -- las opciones dependen del modo y del rival (cambiar() reconstruye la pagina)
     if interf.enLinea then
         interf.subtitulo = "En linea: el jugador 2 esta conectado"
     else
         table.insert(lista, selector("Jugadores", "jugadores", 1, 1, 4))
-        table.insert(lista, opciones("Pantalla", "pantalla", pantallas))
+        table.insert(lista, opciones("Rival", "rival", rivales))
+        -- contra un bot el jugador 1 juega a pantalla completa
+        if interf.ini.rival == 1 then
+            table.insert(lista, opciones("Pantalla", "pantalla", pantallas))
+        end
     end
     local modo = interf.ini.modo
     if modo == 1 then

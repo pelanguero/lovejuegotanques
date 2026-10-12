@@ -2,7 +2,8 @@ local juego=require "juego"
 local inter= require "interf"
 local online=require "online"
 local red=require "red"
--- despues de online: su envoltura de love.keyboard.isDown debe ir por fuera
+-- despues de online: la envoltura de love.keyboard.isDown de los bots
+-- (bot.lua, que carga la demo) debe ir por fuera
 local demo=require "demo"
 
 local ANCHO, ALTO = 1200, 600
@@ -67,8 +68,15 @@ local function iniciarVentanas(ini)
     return "esperando"
 end
 
+local function contraBot(ini)
+    return (ini.rival or 1)>1
+end
+
 -- En linea el anfitrion es el jugador 1 y el cliente el jugador 2
 local function textoResultado()
+    if not online.activo() and contraBot(juego.config) then
+        return juego.ganador==1 and "Ganaste" or "Gana el bot"
+    end
     if not online.activo() or online.esLocal() then
         return "Gana el Equipo "..juego.ganador
     end
@@ -83,10 +91,11 @@ function love.load(args)
         inter.alIniciar = function(ini)
             if online.esAnfitrion() then
                 online.iniciarPartida(ini,love.graphics.getDimensions())
-            elseif ini.pantalla==2 then
+            elseif ini.pantalla==2 and not contraBot(ini) then
                 return iniciarVentanas(ini)
             else
-                juego.vistaJugador=nil
+                -- contra un bot, el jugador 1 ve su tanque a pantalla completa
+                juego.vistaJugador=contraBot(ini) and 1 or nil
                 juego.nuevaPartida(ini,ANCHO,ALTO)
             end
         end

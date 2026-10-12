@@ -8,7 +8,9 @@ local juego={mododejuego=nil,jugando=false,
     -- en linea: jugador que se ve a pantalla completa (nil = pantalla dividida)
     vistaJugador=nil,
     -- se llama al crear cada ronda (en linea reasigna los controles del jugador 2)
-    alNuevaRonda=nil}
+    alNuevaRonda=nil,
+    -- tanques manejados por la computadora en la ronda actual
+    bots={}}
 
 local ESPERA_ENTRE_RONDAS=3
 
@@ -60,6 +62,13 @@ end
 function juego.iniciarRonda()
     local c=juego.config
     juego.new(c.modo,juego.ancho,juego.alto,c.jugadores)
+    -- rival: 1 = jugador 2 humano, 2..4 = bot facil, normal o dificil.
+    -- (bot se carga aqui y no arriba: su envoltura de love.keyboard.isDown
+    -- tiene que quedar por fuera de la de online)
+    juego.bots={}
+    if c.rival and c.rival>1 then
+        juego.bots[1]=require("bot").nuevo(juego.mododejuego,c.modo,2,c.rival-1)
+    end
     juego.estado="jugando"
     juego.ganadorRonda=nil
     if juego.alNuevaRonda then juego.alNuevaRonda() end
@@ -109,6 +118,7 @@ end
 
 function juego.actualizar(dt,joysticks)
     if juego.estado=="jugando" then
+        for _,b in ipairs(juego.bots) do b:actualizar(dt) end
         juego.mododejuego.proupdate(dt,joysticks)
         local g=revisarRonda(dt)
         if g then

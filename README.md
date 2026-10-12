@@ -13,7 +13,22 @@ Esc pausa la partida.
 ## Menu
 
 Mientras estas en los menus, el fondo es una demo del juego: un modo al azar con dos
-tanques manejados por la computadora. Cambia de modo cada 25 segundos y no tiene sonido.
+bots (nivel normal o dificil) peleando. Cambia de modo cada 25 segundos y no tiene sonido.
+
+## Jugar contra la computadora
+
+En **Jugar**, la opcion **Rival** elige quien maneja el tanque del Equipo 2:
+
+- **Jugador 2**: otra persona en el mismo teclado (I J K L, U, O).
+- **Bot facil**: reacciona tarde, apunta mal, no esquiva ni usa minas y a veces se distrae.
+- **Bot normal**: anticipa el movimiento del rival al disparar, esquiva algunas balas,
+  evita minas, deja minas cuando lo persiguen y toma cajas cercanas.
+- **Bot dificil**: reacciona casi al instante, apunta con precision, esquiva casi todas las
+  balas, se mueve de lado mientras recarga energia y busca power-ups cuando esta herido.
+
+Los bots juegan con las mismas reglas que una persona (giro, inercia y energia) y siguen el
+objetivo de cada modo: robar y llevar la bandera, ocupar la colina o quedarse con la bola.
+Contra un bot, el jugador 1 ve la partida a pantalla completa.
 
 ## Pantalla dividida o ventanas separadas
 
@@ -51,4 +66,4 @@ El anfitrion simula la partida y envia el estado al otro jugador, que solo manda
 love . --pruebas
 ```
 
-Juega cada modo simulando teclas (movimiento, dano, respawn, objetivo, limites del mapa, rondas y victoria), prueba la serializacion de red e imprime el resultado. Termina con codigo 1 si alguna prueba falla.
+Juega cada modo simulando teclas (movimiento, dano, respawn, objetivo, limites del mapa, rondas y victoria), pone a jugar a los bots (cada nivel en cada modo, contra un rival quieto y entre ellos, comprobando que el nivel mas alto gane), prueba la serializacion de red e imprime el resultado. Termina con codigo 1 si alguna prueba falla.
