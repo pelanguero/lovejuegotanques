@@ -3,21 +3,29 @@ local inter= require "interf"
 
 local ANCHO, ALTO = 1200, 600
 
-function love.load()
+function love.load(args)
         love.window.setTitle("Tanks")
         love.window.setMode(ANCHO, ALTO,{resizable=false,vsync=true})
         inter.alIniciar = function(ini)
-            juego.new(ini.modo,ANCHO,ALTO,ini.jugadores)
+            juego.nuevaPartida(ini,ANCHO,ALTO)
         end
         inter.alSalir = function() love.event.quit(0) end
         inter.irA(inter.MENU)
+        -- love . --pruebas : corre las pruebas automaticas de los modos
+        for _, a in ipairs(args or {}) do
+            if a == "--pruebas" then require("pruebas.modos").correr() end
+        end
 end
 
 function love.update(dt)
     -- el juego solo avanza mientras no hay un menu abierto (pausa real)
     if inter.enMenu() or not juego.jugando then return end
     local joysticks = love.joystick.getJoysticks()
-    juego.mododejuego.proupdate(dt,joysticks)
+    juego.actualizar(dt,joysticks)
+    if juego.estado=="fin" then
+        juego.jugando=false
+        inter.mostrarResultado("Gana el Equipo "..juego.ganador)
+    end
 end
 
 function love.draw()
@@ -29,7 +37,7 @@ function love.draw()
 end
 
 function love.joystickpressed( joystick, button )
-    if inter.enMenu() then return end
+    if inter.enMenu() or juego.estado~="jugando" then return end
     if juego.mododejuego.joystickpressed then
         juego.mododejuego.joystickpressed( joystick, button )
     end
@@ -43,7 +51,7 @@ function love.keypressed(key,scancode,isrepeat)
         inter.keypressed(key)
     elseif key=="escape" then
         inter.irA(inter.PAUSA)
-    else
+    elseif juego.estado=="jugando" then
         juego.mododejuego.keypressed( key,scancode,isrepeat)
     end
 end

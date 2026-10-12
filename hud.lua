@@ -23,6 +23,44 @@ function hud.marcador(puntuaciones,ancho)
     love.graphics.setColor(1,1,1)
 end
 
+local fuentePeq=love.graphics.newFont("arial_/arial_narrow_7.ttf",18)
+local fuenteAviso=love.graphics.newFont("arial_/arial_narrow_7.ttf",48)
+
+-- Segunda linea bajo el marcador: ronda, rondas ganadas y meta o tiempo
+function hud.estadoPartida(j)
+    local partes={}
+    local paraGanar=j.rondasParaGanar()
+    if paraGanar>1 then
+        table.insert(partes,"Ronda "..j.ronda)
+        table.insert(partes,"Rondas "..j.rondasGanadas[1].." - "..j.rondasGanadas[2].." (gana con "..paraGanar..")")
+    end
+    if j.config.modo==1 then
+        table.insert(partes,"Meta: "..j.meta().." muertes")
+    elseif j.config.modo==2 then
+        table.insert(partes,"Meta: "..j.meta().." capturas")
+    else
+        local t=math.ceil(j.tiempoRestante)
+        table.insert(partes,string.format("Tiempo %d:%02d",math.floor(t/60),t%60))
+    end
+    local texto=love.graphics.newText(fuentePeq,table.concat(partes,"   |   "))
+    local ancho=love.graphics.getWidth()
+    local x=math.floor((ancho-texto:getWidth())/2)
+    love.graphics.setColor(0,0,0,0.6)
+    love.graphics.rectangle("fill",x-10,42,texto:getWidth()+20,texto:getHeight()+6,6,6)
+    love.graphics.setColor(1,1,1)
+    love.graphics.draw(texto,x,45)
+end
+
+-- Mensaje grande en el centro (fin de ronda o de partida)
+function hud.aviso(mensaje)
+    local w,h=love.graphics.getDimensions()
+    love.graphics.setColor(0,0,0,0.55)
+    love.graphics.rectangle("fill",0,h/2-50,w,100)
+    love.graphics.setColor(244/255,208/255,63/255)
+    love.graphics.printf(mensaje,fuenteAviso,0,h/2-fuenteAviso:getHeight()/2,w,"center")
+    love.graphics.setColor(1,1,1)
+end
+
 -- Linea divisoria entre las vistas de pantalla dividida
 function hud.divisor(ancho,alto)
     love.graphics.setColor(0,0,0)

@@ -6,13 +6,14 @@ interf = {
     elementos = {},
     seleccionado = 1,
     -- pantallas
-    MENU = 1, CONFIG = 2, PAUSA = 3, JUGANDO = 4,
+    MENU = 1, CONFIG = 2, PAUSA = 3, JUGANDO = 4, FIN = 5,
     even = 1,
     ini = {jugadores = 1, modo = 2, numMuertes = 20, capturas = 3, rondas = 1, time = 120},
     -- callbacks que asigna main.lua
     alIniciar = nil,
     alSalir = nil,
     mensajeError = nil,
+    resultado = nil,
 }
 
 local font = love.graphics.newFont("arial_/arial_narrow_7.ttf", 22)
@@ -123,26 +124,42 @@ paginas[interf.CONFIG] = function()
     }
     local modo = interf.ini.modo
     if modo == 1 then
-        table.insert(lista, selector("Numero de muertes", "numMuertes", 5, 20, 100))
+        table.insert(lista, selector("Muertes para ganar", "numMuertes", 5, 20, 100))
     elseif modo == 2 then
-        table.insert(lista, selector("Rondas", "rondas", 1, 1, 3))
-        table.insert(lista, selector("Capturas", "capturas", 1, 3, 6))
+        table.insert(lista, selector("Capturas por ronda", "capturas", 1, 3, 6))
+        table.insert(lista, selector("Rondas para ganar", "rondas", 1, 1, 3))
     else
-        table.insert(lista, selector("Tiempo", "time", 30, 120, 600))
-        table.insert(lista, selector("Rondas", "rondas", 1, 1, 3))
+        table.insert(lista, selector("Tiempo por ronda", "time", 30, 120, 600))
+        table.insert(lista, selector("Rondas para ganar", "rondas", 1, 1, 3))
     end
-    table.insert(lista, boton("Comenzar", function()
-        local ok, err = true, nil
-        if interf.alIniciar then ok, err = pcall(interf.alIniciar, interf.ini) end
-        if ok then
-            interf.irA(interf.JUGANDO)
-        else
-            interf.mensajeError = "No se pudo iniciar " .. modos[interf.ini.modo] .. ": " .. tostring(err)
-            print(interf.mensajeError)
-        end
-    end))
+    table.insert(lista, boton("Comenzar", function() paginas.iniciarPartida() end))
     table.insert(lista, boton("Volver", function() interf.irA(interf.MENU) end))
     construir(lista)
+end
+
+function paginas.iniciarPartida()
+    local ok, err = true, nil
+    if interf.alIniciar then ok, err = pcall(interf.alIniciar, interf.ini) end
+    if ok then
+        interf.irA(interf.JUGANDO)
+    else
+        interf.mensajeError = "No se pudo iniciar " .. modos[interf.ini.modo] .. ": " .. tostring(err)
+        print(interf.mensajeError)
+    end
+end
+
+paginas[interf.FIN] = function()
+    titulo = nuevoTexto(interf.resultado or "Fin de la partida", fontTitulo)
+    construir({
+        boton("Jugar de nuevo", function() paginas.iniciarPartida() end),
+        boton("Menu principal", function() interf.irA(interf.MENU) end),
+    })
+end
+
+-- Muestra la pantalla de resultados al terminar una partida
+function interf.mostrarResultado(texto)
+    interf.resultado = texto
+    interf.irA(interf.FIN)
 end
 
 paginas[interf.PAUSA] = function()
@@ -265,7 +282,7 @@ function interf.keypressed(key)
     elseif key == "escape" then
         if interf.even == interf.PAUSA then
             interf.irA(interf.JUGANDO)
-        elseif interf.even == interf.CONFIG then
+        elseif interf.even == interf.CONFIG or interf.even == interf.FIN then
             interf.irA(interf.MENU)
         end
     end
