@@ -4,7 +4,11 @@ local hud=require "hud"
 local juego={mododejuego=nil,jugando=false,
     -- estado de la partida: "jugando", "entreRondas", "terminando" o "fin"
     estado="jugando",config=nil,ronda=1,rondasGanadas={0,0},
-    tiempoRestante=nil,ganadorRonda=nil,ganador=nil,espera=0}
+    tiempoRestante=nil,ganadorRonda=nil,ganador=nil,espera=0,
+    -- en linea: jugador que se ve a pantalla completa (nil = pantalla dividida)
+    vistaJugador=nil,
+    -- se llama al crear cada ronda (en linea reasigna los controles del jugador 2)
+    alNuevaRonda=nil}
 
 local ESPERA_ENTRE_RONDAS=3
 
@@ -56,6 +60,7 @@ function juego.iniciarRonda()
     juego.new(c.modo,juego.ancho,juego.alto,c.jugadores)
     juego.estado="jugando"
     juego.ganadorRonda=nil
+    if juego.alNuevaRonda then juego.alNuevaRonda() end
     if c.modo==3 or c.modo==4 then
         juego.tiempoRestante=c.time
     else
@@ -131,7 +136,12 @@ function juego.actualizar(dt,joysticks)
 end
 
 function juego.dibujarCapas()
-    juego.mododejuego.dibujar()
+    if juego.vistaJugador then
+        juego.mododejuego.camara(1,juego.vistaJugador,nil,juego.ancho,juego.alto)
+        hud.marcador(juego.mododejuego.entidades.puntuaciones,juego.ancho)
+    else
+        juego.mododejuego.dibujar()
+    end
     hud.estadoPartida(juego)
     if juego.estado=="terminando" then
         hud.aviso("Gana el Equipo "..juego.ganador)

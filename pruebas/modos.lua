@@ -205,6 +205,28 @@ local function probarVictoria()
     check(nm, "dibujar aviso entre rondas", okd, errd)
 end
 
+------------------------------------------------------------ red (serializacion)
+
+local function probarRed()
+    local red = require "red"
+    local nm = "Red"
+    local orig = {tipo = "estado", n = -12.5, e = 7, b = true, f = false, txt = "a:b;c\0z",
+                  lista = {{1, 2, {x = 3}}, "s"}}
+    local v = red.decodificar(red.codificar(orig))
+    local ok = type(v) == "table" and v.tipo == "estado" and v.n == -12.5 and v.e == 7 and v.b == true
+        and v.f == false and v.txt == orig.txt and v.lista[1][3].x == 3 and v.lista[2] == "s"
+    check(nm, "codificar/decodificar ida y vuelta", ok)
+    local malos = {"", "x", "n12", "nabc;", "s99:abc", "s-1:", "tn1;", "tn1;n2;", "n1;n2;",
+                   "ttee", string.rep("t", 100) .. string.rep("e", 100), "tTn1;e", "ttes1:ae"}
+    local rechazados = 0
+    for _, m in ipairs(malos) do
+        local okd, val = pcall(red.decodificar, m)
+        if okd and val == nil then rechazados = rechazados + 1 end
+    end
+    check(nm, "mensajes invalidos se rechazan sin error", rechazados == #malos,
+        rechazados .. "/" .. #malos)
+end
+
 function pruebas.correr()
     love.keyboard.isDown = function(...)
         for _, k in ipairs({...}) do if teclas[k] then return true end end
@@ -220,6 +242,8 @@ function pruebas.correr()
     end
     local ok, err = pcall(probarVictoria)
     if not ok then check("Partida", "reglas de victoria", false, tostring(err)) end
+    ok, err = pcall(probarRed)
+    if not ok then check("Red", "serializacion", false, tostring(err)) end
 
     print("\n" .. table.concat(resultados, "\n"))
     print(string.format("\n%d comprobaciones, %d fallas", #resultados, fallas))
