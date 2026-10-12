@@ -1,12 +1,14 @@
-local entidadesCTF={jugadores={},proyectiles={},powerUps={},spawns={},banderas={},ancho=850,alto=850,puntuaciones={}}
+local entidadesCTF={jugadores={},proyectiles={},powerUps={},spawns={},banderas={},ancho=850,alto=850,puntuaciones={},particulas={}}
 local tanques ={"//assets/tanques/tank_dark.png","//assets/tanques/tank_red.png","//assets/tanques/tank_green.png"}
 local proyectiles={"//assets/proyectiles/bulletDark1_outline.png","//assets/proyectiles/bulletRed1_outline.png","//assets/proyectiles/bulletGreen1_outline.png"}
 local mina=love.graphics.newImage("//assets/mina.png")
 local ssangulo=math.rad(90)
 local cbs=60
+local world=love.physics.newWorld(0,0,false)
 local mcbs=cbs/2
 local calavera=love.graphics.newImage("//assets/skull.png")
 local particulas=love.graphics.newImage("//assets/explosion3.png")
+local llantas=love.graphics.newImage("//assets/tracksLarge.png")
 local caja=love.graphics.newImage("//assets/crateMetal.png")
 local cajam=love.graphics.newImage("//assets/crateWood.png")
 function entidadesCTF.agregarEquipo()
@@ -20,6 +22,20 @@ local spawn={}
 spawn.x=spx
 spawn.y=spy
 table.insert( entidadesCTF.spawns,spawn )
+end
+
+local begin_contact_callback = function(fixture_a, fixture_b, contact)
+    print("empezo colision")
+end
+  
+local end_contact_callback = function(fixture_a, fixture_b, contact)
+    print("termino colision")
+end
+  
+world:setCallbacks(begin_contact_callback, end_contact_callback, nil, nil)
+
+function entidadesCTF.actualizarphy(dt)
+    world:update(dt)
 end
 
 function entidadesCTF.agregarBandera(spx,spy)
@@ -64,13 +80,20 @@ function entidadesCTF.agregarJugador(nEqu,posX,posY,strimagen,imagen,angulo,magn
         ro.puntos=0
         table.insert( entidadesCTF.puntuaciones,ro)
     end
+    ju.eparticula=1
+    ju.velocidad=magnitud
+    ju.antvelocidad=25
+    ju.auvel=100
+    ju.input=anco
     ju.equipo=nEqu
     ju.posX=posX
     ju.posY=posY
+    ju.rposX=0
+    ju.rposY=0
     ju.strimagen=tanques[nEqu]
     ju.imagen=love.graphics.newImage(ju.strimagen)
     ju.angulo=angulo
-    ju.magnitud=magnitud
+    ju.magnitud=0
     ju.danho=danho
     ju.vida=vida
     ju.powerup=powerUp
@@ -86,7 +109,12 @@ function entidadesCTF.agregarJugador(nEqu,posX,posY,strimagen,imagen,angulo,magn
     ju.danhoproyectil=20
     ju.banderaa=false
     ju.band=0
+    ju.body=love.physics.newBody(world,ju.posX,ju.posY,"dynamic")
+    --ju.body:setBullet(true)
+    ju.shape=love.physics.newRectangleShape(40,40)
+    ju.fixture=love.physics.newFixture(ju.body,ju.shape,1)
     table.insert( entidadesCTF.jugadores,ju)
+    print(type(entidadesCTF.jugadores[#entidadesCTF.jugadores].input.adelante))
     print("jugadorAgregado")
 end
 
@@ -148,7 +176,38 @@ function entidadesCTF.eliminarProyectiles(limitex,limitey)
     end
 end
 
+function entidadesCTF.keypressed( key,scancode,isrepeat)
+    -- body
+    for i=1,#entidadesCTF.jugadores do
+        if key==entidadesCTF.jugadores[i].input.disparar then
+            entidadesCTF.disparar(entidadesCTF.jugadores[i])
+        end
+        if key==entidadesCTF.jugadores[i].input.mina then
+            entidadesCTF.plantarMina(entidadesCTF.jugadores[i])
+        end
+    end
+end
+
+function entidadesCTF.eliminarParticulas()
+    if #entidadesCTF.particulas>0 then
+        for i=1,#entidadesCTF.proyectiles do
+            if entidadesCTF.particulas[i]~=nil then
+                if entidadesCTF.proyectiles[i].vida<=0 then
+                    table.remove( entidadesCTF.particulas,i)
+                end
+            end
+        end
+    end
+end
+
 function entidadesCTF.actualizarProyectiles(dt)
+
+    for i=1,#entidadesCTF.particulas do
+       
+        entidadesCTF.particulas[i].vida=entidadesCTF.particulas[i].vida-1*dt
+    
+    end
+
     if #entidadesCTF.proyectiles>0 then
         for i=1,#entidadesCTF.proyectiles do
             if  entidadesCTF.proyectiles[i]~=nil then
@@ -188,16 +247,71 @@ function entidadesCTF.actualizarProyectiles(dt)
 
 end
 
-function entidadesCTF.actualizarJugadores(dt)
+function entidadesCTF.actualizarJugadorTeclado(dt,pllayer)
+    pllayer.posY=pllayer.body:getY()
+    pllayer.posX=pllayer.body:getX()
+    pllayer.posY=pllayer.posY-pllayer.magnitud*math.sin(pllayer.angulo-ssangulo)*dt
+        pllayer.posX=pllayer.posX-pllayer.magnitud*math.cos(pllayer.angulo-ssangulo)*dt
+        --restar valores absolutos podria ser mejor
+        if pllayer.magnitud>0 then
+            pllayer.magnitud=pllayer.magnitud-pllayer.antvelocidad*dt
+        elseif pllayer.magnitud<0 then
+            pllayer.magnitud=pllayer.magnitud+pllayer.antvelocidad*dt
+        end
+        if love.keyboard.isDown(pllayer.input.adelante) then
+            pllayer.magnitud=pllayer.magnitud+pllayer.auvel*dt
+            if pllayer.magnitud>pllayer.velocidad then
+                pllayer.magnitud=pllayer.velocidad
+            end
+        elseif love.keyboard.isDown(pllayer.input.atras) then
+            pllayer.magnitud=pllayer.magnitud-pllayer.auvel*dt-20*dt
+            if pllayer.magnitud<-pllayer.velocidad then
+                pllayer.magnitud=-pllayer.velocidad
+            end
+        elseif love.keyboard.isDown(pllayer.input.izquierda) then
+            pllayer.angulo=pllayer.angulo-math.rad(100)*dt
+        elseif love.keyboard.isDown(pllayer.input.derecha) then
+            pllayer.angulo=pllayer.angulo+math.rad(100)*dt
+        end
+        
+        pllayer.energia=pllayer.energia+pllayer.ratio*dt
+        if pllayer.energia>pllayer.limite then
+            pllayer.energia=pllayer.limite
+        end
+        pllayer.eparticula=pllayer.eparticula+1*dt
+        if pllayer.eparticula>1 then
+            pllayer.eparticula=1
+        end
+        if pllayer.magnitud == pllayer.velocidad and pllayer.eparticula>=1 then
+            entidadesCTF.añadirParticulas(pllayer,10)
+            pllayer.eparticula=pllayer.eparticula-9.4*dt
+        end
+        
+        pllayer.body:setX(pllayer.posX)
+        pllayer.body:setY(pllayer.posY)
+end
+
+function entidadesCTF.actualizarJugadores(dt,joys)
     entidadesCTF.matarJugadores()
     for i=1,#entidadesCTF.jugadores do
-        entidadesCTF.jugadores[i].energia=entidadesCTF.jugadores[i].energia+entidadesCTF.jugadores[i].ratio*dt
-        if entidadesCTF.jugadores[i].energia>entidadesCTF.jugadores[i].limite then
-            entidadesCTF.jugadores[i].energia=entidadesCTF.jugadores[i].limite
+        if entidadesCTF.jugadores[i].input.joystick then
+            --entidadesCTF.actualizarJugadorMando(dt,entidadesCTF.jugadores[i])
+        else
+            entidadesCTF.actualizarJugadorTeclado(dt,entidadesCTF.jugadores[i])
+            --print(joys[1]:getAxis(1))
         end
     end
 end
 
+function entidadesCTF.añadirParticulas(jugadorr,duracion)
+    local ju={}
+    ju.posX=jugadorr.posX
+    ju.posY=jugadorr.posY
+    ju.angulo=jugadorr.angulo
+    ju.vida=duracion
+    ju.vidamax=duracion+0
+    table.insert( entidadesCTF.particulas, ju)
+end 
 
 function entidadesCTF.estaDentro(exx,eyy,entt,xa,ya)
     local retorno=false
@@ -327,8 +441,8 @@ function entidadesCTF.desactivarPu(tipo,ply)
 end
 
 function entidadesCTF.spawnearJugadores(ent)
-    ent.posX=entidadesCTF.spawns[ent.equipo].x
-    ent.posY=entidadesCTF.spawns[ent.equipo].y
+    ent.body:setX(entidadesCTF.spawns[ent.equipo].x)
+    ent.body:setY(entidadesCTF.spawns[ent.equipo].y)
     ent.energia=100
     ent.limite=100
     ent.vida=100
@@ -342,6 +456,20 @@ function entidadesCTF.dibujar(eex,eey,canv,xa,ya)
     if canv~=nil then
         love.graphics.setCanvas(canv)
     end
+
+    for i=1,#entidadesCTF.particulas do
+        if entidadesCTF.estaDentro(eex,eey,entidadesCTF.particulas[i],xa,ya) then
+            local fx=entidadesCTF.particulas[i].posX-eex
+            local fy=entidadesCTF.particulas[i].posY-eey
+            love.graphics.setColor(255,255,255,entidadesCTF.particulas[i].vida/entidadesCTF.particulas[i].vidamax)
+            love.graphics.draw(llantas,fx,fy,entidadesCTF.particulas[i].angulo,1,1,20,26,0,0)
+            --dibuja la caja de colision
+        end
+    
+    end
+
+    love.graphics.setColor(255,255,255,1)
+
     for i=1,#entidadesCTF.proyectiles do
         if entidadesCTF.estaDentro(eex,eey,entidadesCTF.proyectiles[i],xa,ya) then
             local fx=entidadesCTF.proyectiles[i].posX-eex

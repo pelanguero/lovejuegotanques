@@ -5,7 +5,7 @@ local ancho=0
 local alto=0
 local inputUno={}
 local inputDos={}
-
+local prueba=0
 function bolaL.new(ancc,altt)
     bolaL.mapa.new("../mapas/bola","//assets/terrainTiles_default.png")
     bolaL.ancho=ancc

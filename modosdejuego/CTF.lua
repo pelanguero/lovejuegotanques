@@ -3,13 +3,32 @@ local ctf={temud=require "../modosdejuego/prron",entidades=require "../entidades
 local ssangulo=math.rad(90)
 local ancho=0
 local alto=0
+local inputUno={}
+local inputDos={}
 
-
-function ctf.new()
+function ctf.new(ancc,altt)
     ctf.mapa.new("../mapas/capturarlabandera","//assets/terrainTiles_default.png")
+    ctf.ancho=ancc
+    ctf.alto=altt
+    ctf.mdx=math.floor(ancc/2)
+    ctf.mdy=math.floor(altt/2)
+    inputUno.adelante="w"
+    inputUno.atras="s"
+    inputUno.derecha="d"
+    inputUno.izquierda="a"
+    inputUno.disparar="q"
+    inputUno.mina="e"
+    inputUno.joystick=false
+    inputDos.adelante="i"
+    inputDos.atras="k"
+    inputDos.derecha="l"
+    inputDos.izquierda="j"
+    inputDos.joystick=false
+    inputDos.disparar="u"
+    inputDos.mina="o"
     ancho=ctf.mapa.tablamapa.width*64
     alto=ctf.mapa.tablamapa.height*64
-    ctf.temud.new(ctf.mapa,1200,600)
+    ctf.temud.new(ctf.mapa,ancc,altt)
     for i=1,#ctf.mapa.puntos do 
        if ctf.mapa.puntos[i].val==1 then
          ctf.entidades.agregarSpawn(ctf.mapa.puntos[i].x,ctf.mapa.puntos[i].y)
@@ -20,8 +39,8 @@ function ctf.new()
        end
     end
 
-    ctf.entidades.agregarJugador(1,ctf.entidades.spawns[1].x,ctf.entidades.spawns[1].y,"nada",nil,0,300,20,100,"ninguno",21,23,1)
-    ctf.entidades.agregarJugador(2,ctf.entidades.spawns[2].x,ctf.entidades.spawns[2].y,"nada",nil,0,300,20,100,"ninguno",21,23,1)
+    ctf.entidades.agregarJugador(1,ctf.entidades.spawns[1].x,ctf.entidades.spawns[1].y,"nada",nil,0,300,20,100,"ninguno",21,23,1,inputUno)
+    ctf.entidades.agregarJugador(2,ctf.entidades.spawns[2].x,ctf.entidades.spawns[2].y,"nada",nil,0,300,20,100,"ninguno",21,23,1,inputDos)
     ctf.entidades.ancho=ctf.ancho+50
     ctf.entidades.alto=ctf.alto+50
 end
@@ -64,30 +83,15 @@ end
 
 end
 
-function ctf.inputP(dt,jugador,avanzar,retroceder,izquierda,derecha,disparar,mina)
-    if love.keyboard.isDown(avanzar) then
-        ctf.entidades.jugadores[jugador].posY=ctf.entidades.jugadores[jugador].posY-ctf.entidades.jugadores[jugador].magnitud*math.sin(ctf.entidades.jugadores[jugador].angulo-ssangulo)*dt
-        ctf.entidades.jugadores[jugador].posX=ctf.entidades.jugadores[jugador].posX-ctf.entidades.jugadores[jugador].magnitud*math.cos(ctf.entidades.jugadores[jugador].angulo-ssangulo)*dt
-    elseif love.keyboard.isDown(retroceder) then
-        ctf.entidades.jugadores[jugador].posY=ctf.entidades.jugadores[jugador].posY+ctf.entidades.jugadores[jugador].magnitud*math.sin(ctf.entidades.jugadores[jugador].angulo-ssangulo)*dt
-        ctf.entidades.jugadores[jugador].posX=ctf.entidades.jugadores[jugador].posX+ctf.entidades.jugadores[jugador].magnitud*math.cos(ctf.entidades.jugadores[jugador].angulo-ssangulo)*dt
-    elseif love.keyboard.isDown(izquierda) then
-        ctf.entidades.jugadores[jugador].angulo=ctf.entidades.jugadores[jugador].angulo-math.rad(100)*dt
-    elseif love.keyboard.isDown(derecha) then
-        ctf.entidades.jugadores[jugador].angulo=ctf.entidades.jugadores[jugador].angulo+math.rad(100)*dt
-    end
-    if love.keyboard.isDown(disparar) then
-    ctf.entidades.disparar(ctf.entidades.jugadores[jugador])
-    end
-    if love.keyboard.isDown(mina) then
-        ctf.entidades.plantarMina(ctf.entidades.jugadores[jugador])
-    end
+
+
+function ctf.keypressed( key,scancode,isrepeat)
+    -- body
+    ctf.entidades.keypressed( key,scancode,isrepeat)
 end
 
 function ctf.proupdate(dt)
-ctf.inputP(dt,1,"w","s","a","d","q","e")
-ctf.inputP(dt,2,"i","k","j","l","u","o")
-ctf.corregirPosicion(ctf.entidades.jugadores[1])
+    ctf.entidades.actualizarphy(dt)
 ctf.entidades.actualizarJugadores(dt)
 ctf.entidades.actualizarProyectiles(dt)
 ctf.entidades.detectarColision(dt)

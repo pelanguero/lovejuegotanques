@@ -135,7 +135,7 @@ function entidadesBol.agregarProyectil(nEqu,posX,posY,strimagen,imagen,angulo,ma
     end
     table.insert( entidadesBol.proyectiles,ju)
 end
-
+local son =require(".//sonido")
 function entidadesBol.disparar(rrr)
     --crea un proyectil con el angulo y direccion
     local px=rrr.posX-24*math.cos(rrr.angulo-ssangulo)
@@ -143,6 +143,7 @@ function entidadesBol.disparar(rrr)
     --nEqu,posX,posY,strimagen,imagen,angulo,magnitud,danho,vida,powerUp,medX,medY,tamanho
     if rrr.energia>rrr.danhoproyectil then
         entidadesBol.agregarProyectil(rrr.equipo,px,py,1,nil,rrr.angulo,600,rrr.danhoproyectil,10,"ninguno",4,7,1,1)
+        son.play(son.sun[3])
         rrr.energia=rrr.energia-rrr.danhoproyectil
     end
 end
@@ -151,6 +152,7 @@ function entidadesBol.plantarMina(rrr)
     if rrr.energia>rrr.danhomina then
         entidadesBol.agregarProyectil(rrr.equipo,rrr.posX,rrr.posY,1,nil,0,0,rrr.danhomina,10,"ninguno",12,12,1,2)
         rrr.energia=rrr.energia-rrr.danhomina
+        son.play(son.mina[1])
     end
 end
 
@@ -230,55 +232,64 @@ function entidadesBol.actualizarphy(dt)
     world:update(dt)
 end
 
-function entidadesBol.actualizarJugadores(dt)
-    --world:update(dt)
-    entidadesBol.matarJugadores()
-    for i=1,#entidadesBol.jugadores do
-        entidadesBol.jugadores[i].posY=entidadesBol.jugadores[i].body:getY()
-        entidadesBol.jugadores[i].posX=entidadesBol.jugadores[i].body:getX()
-        entidadesBol.jugadores[i].posY=entidadesBol.jugadores[i].posY-entidadesBol.jugadores[i].magnitud*math.sin(entidadesBol.jugadores[i].angulo-ssangulo)*dt
-        entidadesBol.jugadores[i].posX=entidadesBol.jugadores[i].posX-entidadesBol.jugadores[i].magnitud*math.cos(entidadesBol.jugadores[i].angulo-ssangulo)*dt
+function entidadesBol.actualizarJugadorTeclado(dt,pllayer)
+    pllayer.posY=pllayer.body:getY()
+    pllayer.posX=pllayer.body:getX()
+    pllayer.posY=pllayer.posY-pllayer.magnitud*math.sin(pllayer.angulo-ssangulo)*dt
+        pllayer.posX=pllayer.posX-pllayer.magnitud*math.cos(pllayer.angulo-ssangulo)*dt
         --restar valores absolutos podria ser mejor
-        if entidadesBol.jugadores[i].magnitud>0 then
-            entidadesBol.jugadores[i].magnitud=entidadesBol.jugadores[i].magnitud-entidadesBol.jugadores[i].antvelocidad*dt
-        elseif entidadesBol.jugadores[i].magnitud<0 then
-            entidadesBol.jugadores[i].magnitud=entidadesBol.jugadores[i].magnitud+entidadesBol.jugadores[i].antvelocidad*dt
+        if pllayer.magnitud>0 then
+            pllayer.magnitud=pllayer.magnitud-pllayer.antvelocidad*dt
+        elseif pllayer.magnitud<0 then
+            pllayer.magnitud=pllayer.magnitud+pllayer.antvelocidad*dt
         end
-        if love.keyboard.isDown(entidadesBol.jugadores[i].input.adelante) then
-            entidadesBol.jugadores[i].magnitud=entidadesBol.jugadores[i].magnitud+entidadesBol.jugadores[i].auvel*dt
-            if entidadesBol.jugadores[i].magnitud>entidadesBol.jugadores[i].velocidad then
-                entidadesBol.jugadores[i].magnitud=entidadesBol.jugadores[i].velocidad
+        if love.keyboard.isDown(pllayer.input.adelante) then
+            pllayer.magnitud=pllayer.magnitud+pllayer.auvel*dt
+            if pllayer.magnitud>pllayer.velocidad then
+                pllayer.magnitud=pllayer.velocidad
             end
-        elseif love.keyboard.isDown(entidadesBol.jugadores[i].input.atras) then
-            entidadesBol.jugadores[i].magnitud=entidadesBol.jugadores[i].magnitud-entidadesBol.jugadores[i].auvel*dt-20*dt
-            if entidadesBol.jugadores[i].magnitud<-entidadesBol.jugadores[i].velocidad then
-                entidadesBol.jugadores[i].magnitud=-entidadesBol.jugadores[i].velocidad
+        elseif love.keyboard.isDown(pllayer.input.atras) then
+            pllayer.magnitud=pllayer.magnitud-pllayer.auvel*dt-20*dt
+            if pllayer.magnitud<-pllayer.velocidad then
+                pllayer.magnitud=-pllayer.velocidad
             end
-        elseif love.keyboard.isDown(entidadesBol.jugadores[i].input.izquierda) then
-            entidadesBol.jugadores[i].angulo=entidadesBol.jugadores[i].angulo-math.rad(100)*dt
-        elseif love.keyboard.isDown(entidadesBol.jugadores[i].input.derecha) then
-            entidadesBol.jugadores[i].angulo=entidadesBol.jugadores[i].angulo+math.rad(100)*dt
+        elseif love.keyboard.isDown(pllayer.input.izquierda) then
+            pllayer.angulo=pllayer.angulo-math.rad(100)*dt
+        elseif love.keyboard.isDown(pllayer.input.derecha) then
+            pllayer.angulo=pllayer.angulo+math.rad(100)*dt
         end
         
-        entidadesBol.jugadores[i].energia=entidadesBol.jugadores[i].energia+entidadesBol.jugadores[i].ratio*dt
-        if entidadesBol.jugadores[i].energia>entidadesBol.jugadores[i].limite then
-            entidadesBol.jugadores[i].energia=entidadesBol.jugadores[i].limite
+        pllayer.energia=pllayer.energia+pllayer.ratio*dt
+        if pllayer.energia>pllayer.limite then
+            pllayer.energia=pllayer.limite
         end
-        entidadesBol.jugadores[i].eparticula=entidadesBol.jugadores[i].eparticula+1*dt
-        if entidadesBol.jugadores[i].eparticula>1 then
-            entidadesBol.jugadores[i].eparticula=1
+        pllayer.eparticula=pllayer.eparticula+1*dt
+        if pllayer.eparticula>1 then
+            pllayer.eparticula=1
         end
-        if entidadesBol.jugadores[i].magnitud == entidadesBol.jugadores[i].velocidad and entidadesBol.jugadores[i].eparticula>=1 then
-            entidadesBol.añadirParticulas(entidadesBol.jugadores[i],10)
-            entidadesBol.jugadores[i].eparticula=entidadesBol.jugadores[i].eparticula-9.4*dt
+        if pllayer.magnitud == pllayer.velocidad and pllayer.eparticula>=1 then
+            entidadesBol.añadirParticulas(pllayer,10)
+            pllayer.eparticula=pllayer.eparticula-9.4*dt
         end
-        if entidadesBol.jugadores[i].banderaa then
-            entidadesBol.puntuaciones[entidadesBol.jugadores[i].equipo].puntos=entidadesBol.puntuaciones[entidadesBol.jugadores[i].equipo].puntos+1*dt
+        if pllayer.banderaa then
+            entidadesBol.puntuaciones[pllayer.equipo].puntos=entidadesBol.puntuaciones[pllayer.equipo].puntos+1*dt
         end
-        entidadesBol.jugadores[i].body:setX(entidadesBol.jugadores[i].posX)
-        entidadesBol.jugadores[i].body:setY(entidadesBol.jugadores[i].posY)
+        pllayer.body:setX(pllayer.posX)
+        pllayer.body:setY(pllayer.posY)
+end
+
+function entidadesBol.actualizarJugadores(dt,joys)
+    entidadesBol.matarJugadores()
+    for i=1,#entidadesBol.jugadores do
+        if entidadesBol.jugadores[i].input.joystick then
+            --entidadesBol.actualizarJugadorMando(dt,entidadesBol.jugadores[i])
+        else
+            entidadesBol.actualizarJugadorTeclado(dt,entidadesBol.jugadores[i])
+            --print(joys[1]:getAxis(1))
+        end
     end
 end
+
 function entidadesBol.keypressed( key,scancode,isrepeat)
     -- body
     for i=1,#entidadesBol.jugadores do
@@ -327,7 +338,8 @@ function entidadesBol.detectarColision(dt)
                     entidadesBol.jugadores[i].eqimpac=entidadesBol.proyectiles[j].equipo
                     --print(entidadesBol.jugadores[i].eqimpac)
                     print(entidadesBol.jugadores[i].vida)
-                    entidadesBol.proyectiles[j].vida=entidadesBol.proyectiles[j].vida-entidadesBol.jugadores[i].danho
+                    entidadesBol.proyectiles[j].vida=entidadesBol.proyectiles[j].vida-entidadesBol.jugadores[i].danho             
+                    son.play(son.imp[1])
                     print(entidadesBol.jugadores[i].vida)
                 end
             end
@@ -380,6 +392,7 @@ end
 function entidadesBol.matarJugadores()
     for i=1,#entidadesBol.jugadores do
         if entidadesBol.jugadores[i].vida<1 then
+            son.play(son.dead[1])
             if entidadesBol.jugadores[i].banderaa then
             entidadesBol.banderas[entidadesBol.jugadores[i].band].posX=entidadesBol.jugadores[i].posX
             entidadesBol.banderas[entidadesBol.jugadores[i].band].posY=entidadesBol.jugadores[i].posY

@@ -1,6 +1,6 @@
 pantallaActual=1
-local inter= require "interf"
 local juego=require "juego"
+local inter= require "interf"
 pantallas={}
 for i=1,2 do 
 pantallas[i]=0;
@@ -19,7 +19,8 @@ end
 
 function love.update(dt)   
         --eventos de mouse para elegir la opcion en el menu
-    juego.mododejuego.proupdate(dt)
+    local joysticks = love.joystick.getJoysticks()
+    juego.mododejuego.proupdate(dt,joysticks)
     
 end
 
@@ -32,6 +33,17 @@ function love.draw()
     else
         inter.dibijarElementos()
     end
+end
+
+function love.joystickpressed( joystick, button ) 
+    juego.mododejuego.joystickpressed( joystick, button ) 
+end
+
+function love.keypressed(key,scancode,isrepeat)
+    if key=="x" then
+    love.event.quit(0)
+    end
+    juego.mododejuego.keypressed( key,scancode,isrepeat)
 end
 function love.mousereleased(x, y, button)
     inter.mousehandler(x,y,button)      
