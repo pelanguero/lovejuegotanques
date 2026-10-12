@@ -3,8 +3,21 @@
 --require("./modosdejuego/TEAMSLAYER")
 local juego={mododejuego=nil,jugando=false}
 
+local modulosPartida={}
+
+-- Descarga los modulos cargados por la partida anterior para que
+-- una nueva partida empiece con entidades y mapa limpios.
+local function descargarPartida()
+    for nombre in pairs(modulosPartida) do
+        package.loaded[nombre]=nil
+    end
+    modulosPartida={}
+end
+
 function juego.new(mdj,jancho,jalto,njugadores)
-    -- body
+    descargarPartida()
+    local antes={}
+    for nombre in pairs(package.loaded) do antes[nombre]=true end
     if mdj==1 then
         juego.mododejuego=require("./modosdejuego/TEAMSLAYER")
     elseif mdj==2 then
@@ -15,6 +28,9 @@ function juego.new(mdj,jancho,jalto,njugadores)
         juego.mododejuego=require("./modosdejuego/bolaL")
     end
     juego.mododejuego.new(jancho,jalto,njugadores)
+    for nombre in pairs(package.loaded) do
+        if not antes[nombre] then modulosPartida[nombre]=true end
+    end
     juego.jugando=true
 end
 
@@ -26,7 +42,7 @@ function juego.actualizar(dt)
     end
 end
 
-function juego:dibujarCapas()
+function juego.dibujarCapas()
 juego.mododejuego.dibujar()
 end
 return juego

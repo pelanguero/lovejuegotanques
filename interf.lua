@@ -1,272 +1,274 @@
-interf={elementos={},even=3,ini={jugadores =1,modo=2,numMuertes=20,capturas= 3,rondas=1,time=120}} 
-local font = love.graphics.newFont( "arial_/arial_narrow_7.ttf",20 )
-local color ={244/255,208/255,63/255}   
-function cajas(ele,ref) 
-            
-    local t = love.graphics.newText( font, ele.txt)
-    local w, h = t:getDimensions()
+-- Interfaz de menus: principal, configuracion de partida y pausa.
+-- Los widgets se construyen una sola vez por pantalla (no en cada frame)
+-- y cachean sus objetos Text.
 
-    local p = love.graphics.newText( font, ref)            
-            love.graphics.rectangle("line",(ele.x-2)+w*1.1+10,ele.y-2,40,h)
-            love.graphics.draw(p,(ele.x-2)+w*1.1+12,ele.y,0,ele.escalax,ele.escalay)
-end 
+interf = {
+    elementos = {},
+    seleccionado = 1,
+    -- pantallas
+    MENU = 1, CONFIG = 2, PAUSA = 3, JUGANDO = 4,
+    even = 1,
+    ini = {jugadores = 1, modo = 2, numMuertes = 20, capturas = 3, rondas = 1, time = 120},
+    -- callbacks que asigna main.lua
+    alIniciar = nil,
+    alSalir = nil,
+    mensajeError = nil,
+}
 
-function dibujarText(ele)   
-        --local font = love.graphics.getFont()              
-        local t = love.graphics.newText( font, ele.txt)     
-        local w, h = t:getDimensions()
-        love.graphics.draw(t,ele.x,ele.y,0,1,1) 
+local font = love.graphics.newFont("arial_/arial_narrow_7.ttf", 22)
+local fontTitulo = love.graphics.newFont("arial_/arial_narrow_7.ttf", 48)
 
-        if ele.tipo == 1 then
-           -- love.graphics.rectangle("line",ele.x-2,ele.y,w*1.1,h*1.6)
-        end 
-        if ele.tipo == 2 then
-            cajas(ele,interf.ini.jugadores)             
-        end 
-        if ele.tipo == 3 then
-            cajas(ele,interf.ini.numMuertes)                    
-        end 
-        if ele.tipo == 4 then
-            cajas(ele,interf.ini.modo) 
-            
-        end
-        if ele.tipo == 5 then
-            cajas(ele,interf.ini.capturas)             
-        end 
-        if ele.tipo == 6 then
-            cajas(ele,interf.ini.rondas)             
-        end
-        if ele.tipo == 7 then
-            cajas(ele,interf.ini.time)             
-        end
-        if ele.tipo == 8 then 
-            love.graphics.rectangle("line",ele.x-4,ele.y-4,w*1.2,h*1.1)
-        end
-        if ele.tipo == 10 then 
-            love.graphics.rectangle("line",ele.x-4,ele.y-4,w*1.2,h*1.1)
-        end 
-            
-    
-end 
-function addElement(tipo,x,y,val,seg,id,ty,tp)
-    --interf.addUIElement(x,y,tipo,frase,escalax,escalay,tx,ty,transp,id,tColorT,tColorF,im,seg)
-              
-        local t = love.graphics.newText( font, val)     
-        local w, h = t:getDimensions()
-    if tp == 1 then 
-        interf.addUIElement(x,y,tipo,val,1,1,1,1,0.23,id,1,1,1,seg)
-    end 
-    if tp == 2 then         
-        interf.addUIElement(x,y,tipo,val,1,1,1,1,0.23,0,1,1,1,1)
-        interf.addUIElement(w+200,y,8," + ",1,1,1,ty,0.23,8,1,1,1,1)
-        interf.addUIElement(w+230,y,8," - ",1,1,1,ty,0.23,9,1,1,1,1)
-    end 
+local colores = {
+    fondo = {46/255, 64/255, 83/255},
+    texto = {1, 1, 1},
+    tenue = {0.7, 0.75, 0.8},
+    acento = {244/255, 208/255, 63/255},
+    caja = {1, 1, 1, 0.08},
+    cajaHover = {244/255, 208/255, 63/255, 0.2},
+    error = {1, 0.45, 0.4},
+}
 
-end 
-    
-function event(x,y,ele)
-             
-            t = love.graphics.newText( font, ele.txt)
-            w, h = t:getDimensions()         
-            if x > ele.x and x < ele.x+w*1.1 and y > ele.y and y < ele.y+h*1.1 then
-                color ={244/255,208/255,63/255}
-                if ele.id == 2 then
-                interf.even = ele.seg 
-                end
-                if ele.id == 4 then                    
-                    if interf.ini.jugadores < 4 then 
-                    interf.ini.jugadores =interf.ini.jugadores +1
-                    end 
-                end
-                if ele.id == 5 then
-                    if interf.ini.jugadores > 1 then 
-                    interf.ini.jugadores =interf.ini.jugadores -1
-                    end 
-                end 
-                if ele.id == 7 then
-                    interf.ini.modo = ele.seg
-                end
-                -----Opciones modo
-                if ele.id == 8 then
-                    if interf.ini.modo == 1 then                        
-                        if  interf.ini.numMuertes < 100 then 
-                            interf.ini.numMuertes = interf.ini.numMuertes + 5 
-                        end 
-                    end
-                    if interf.ini.modo == 2 then
-                        if ele.ty == 5 then
-                            if  interf.ini.capturas < 6 then 
-                                interf.ini.capturas = interf.ini.capturas + 1 
-                            end                            
-                        end 
-                        if ele.ty == 4 then
-                            if  interf.ini.rondas < 3 then 
-                                interf.ini.rondas = interf.ini.rondas + 1 
-                            end
-                            
-                        end                                
-                
-                    end
-                    if interf.ini.modo == 3 or interf.ini.modo == 4 then
-                        if ele.ty == 5 then
-                            if  interf.ini.time < 600 then 
-                                interf.ini.time = interf.ini.time + 25 
-                            end                            
-                        end 
-                        if ele.ty == 4 then
-                            if  interf.ini.rondas < 3 then 
-                                interf.ini.rondas = interf.ini.rondas + 1 
-                            end
-                            
-                        end                                
-                
-                    end   
-                end 
-                if ele.id == 9 then 
-                    if interf.ini.modo == 1 then
-                        if  interf.ini.numMuertes > 20 then 
-                            interf.ini.numMuertes = interf.ini.numMuertes - 5 
-                        end 
-                    end
-                    if interf.ini.modo == 2 then
-                        if ele.ty == 5 then
-                            if  interf.ini.capturas > 3 then 
-                                interf.ini.capturas = interf.ini.capturas - 1 
-                            end
-                        end    
-                       
-                        if ele.ty == 4 then
-                            if  interf.ini.rondas > 1 then 
-                                interf.ini.rondas = interf.ini.rondas - 1 
-                            end                            
-                        end                               
-                
-                    end
-                    if interf.ini.modo == 3 or interf.ini.modo == 4 then
-                        if ele.ty == 5 then
-                            if  interf.ini.time > 120 then 
-                                interf.ini.time = interf.ini.time - 25 
-                            end                            
-                        end 
-                        if ele.ty == 4 then
-                            if  interf.ini.rondas > 1 then 
-                                interf.ini.rondas = interf.ini.rondas - 1 
-                            end 
-                            
-                        end                                
-                
-                    end
-                end
-                if ele.id == 10 then
-                    interf.even = 4
-                end 
-                ----------
-            end         
-end   
+local modos = {"Team Slayer", "Capture The Flag", "King Of The Hill", "Crazy Ball"}
 
-function interf.addUIElement(x,y,tipo,frase,escalax,escalay,tx,ty,transp,id,tColorT,tColorF,im,seg)    
-    local ele={} 
-    ele.id=id    
-    ele.x=x
-    ele.y=y
-    ele.tipo=tipo
-    ele.txt=frase
-    ele.escalax=escalax
-    ele.escalay=escalay
-    ele.tcolor=color    
-    ele.tColorT=tColorT
-    ele.tx=tx
-    ele.ty=ty
-    ele.transp=transp
-    ele.im=im
-    ele.seg=seg
-    
-    table.insert(interf.elementos,ele)  
+local ANCHO_BOTON = 300
+local ALTO_FILA = 40
+local PAD = 8
+
+local titulo = nil
+
+------------------------------------------------------------------ widgets
+
+local function nuevoTexto(txt, f)
+    return love.graphics.newText(f or font, txt)
 end
-function validar()
-    interf.elementos = nil
+
+local function boton(texto, accion)
+    return {tipo = "boton", texto = nuevoTexto(texto), accion = accion,
+            w = ANCHO_BOTON, h = ALTO_FILA}
+end
+
+-- Selector con valor numerico: [etiqueta]  < valor >
+local function selector(texto, campo, paso, min, max)
+    return {tipo = "selector", texto = nuevoTexto(texto), campo = campo,
+            paso = paso, min = min, max = max, w = ANCHO_BOTON + 200, h = ALTO_FILA}
+end
+
+-- Selector de opciones de una lista (modo de juego)
+local function opciones(texto, campo, lista)
+    return {tipo = "opciones", texto = nuevoTexto(texto), campo = campo,
+            lista = lista, w = ANCHO_BOTON + 200, h = ALTO_FILA}
+end
+
+local function cambiar(ele, dir)
+    local ini = interf.ini
+    if ele.tipo == "selector" then
+        local v = ini[ele.campo] + dir * ele.paso
+        ini[ele.campo] = math.max(ele.min, math.min(ele.max, v))
+    elseif ele.tipo == "opciones" then
+        local n = #ele.lista
+        ini[ele.campo] = (ini[ele.campo] - 1 + dir) % n + 1
+        interf.irA(interf.CONFIG, true) -- las opciones dependen del modo
+    end
+end
+
+local function valorTexto(ele)
+    local v = interf.ini[ele.campo]
+    if ele.tipo == "opciones" then return ele.lista[v] end
+    if ele.campo == "time" then
+        return string.format("%d:%02d", math.floor(v / 60), v % 60)
+    end
+    return tostring(v)
+end
+
+-- Zonas de las flechas < > de un selector
+local function zonasFlechas(ele)
+    local x = ele.x + ele.w - 240
+    return {x = x, y = ele.y, w = 30, h = ele.h},
+           {x = x + 210, y = ele.y, w = 30, h = ele.h}
+end
+
+local function dentro(px, py, r)
+    return px >= r.x and px <= r.x + r.w and py >= r.y and py <= r.y + r.h
+end
+
+------------------------------------------------------------------ pantallas
+
+local function construir(lista)
+    -- inicio fijo: las filas no se mueven al cambiar de modo (5 o 6 filas)
+    local y = 170
+    local cx = love.graphics.getWidth() / 2
+    for _, ele in ipairs(lista) do
+        ele.x = math.floor(cx - ele.w / 2)
+        ele.y = math.floor(y)
+        y = y + ALTO_FILA + PAD
+    end
+    interf.elementos = lista
+end
+
+local paginas = {}
+
+paginas[interf.MENU] = function()
+    titulo = nuevoTexto("TANQUES 2D", fontTitulo)
+    construir({
+        boton("Jugar", function() interf.irA(interf.CONFIG) end),
+        boton("Salir", function() if interf.alSalir then interf.alSalir() end end),
+    })
+end
+
+paginas[interf.CONFIG] = function()
+    titulo = nuevoTexto("Nueva partida", fontTitulo)
+    local lista = {
+        opciones("Modo de juego", "modo", modos),
+        selector("Jugadores", "jugadores", 1, 1, 4),
+    }
+    local modo = interf.ini.modo
+    if modo == 1 then
+        table.insert(lista, selector("Numero de muertes", "numMuertes", 5, 20, 100))
+    elseif modo == 2 then
+        table.insert(lista, selector("Rondas", "rondas", 1, 1, 3))
+        table.insert(lista, selector("Capturas", "capturas", 1, 3, 6))
+    else
+        table.insert(lista, selector("Tiempo", "time", 30, 120, 600))
+        table.insert(lista, selector("Rondas", "rondas", 1, 1, 3))
+    end
+    table.insert(lista, boton("Comenzar", function()
+        local ok, err = true, nil
+        if interf.alIniciar then ok, err = pcall(interf.alIniciar, interf.ini) end
+        if ok then
+            interf.irA(interf.JUGANDO)
+        else
+            interf.mensajeError = "No se pudo iniciar " .. modos[interf.ini.modo] .. ": " .. tostring(err)
+            print(interf.mensajeError)
+        end
+    end))
+    table.insert(lista, boton("Volver", function() interf.irA(interf.MENU) end))
+    construir(lista)
+end
+
+paginas[interf.PAUSA] = function()
+    titulo = nuevoTexto("Pausa", fontTitulo)
+    construir({
+        boton("Seguir jugando", function() interf.irA(interf.JUGANDO) end),
+        boton("Menu principal", function() interf.irA(interf.MENU) end),
+    })
+end
+
+-- Cambia de pantalla y reconstruye sus elementos.
+-- mantenerSeleccion conserva el elemento resaltado (util al refrescar CONFIG).
+function interf.irA(pantalla, mantenerSeleccion)
+    interf.even = pantalla
+    interf.mensajeError = nil
     interf.elementos = {}
-    if interf.even == 1 then        
-        pagina1()
-    end
-    if interf.even == 2 then
-        pagina2()
-    end
-    if interf.even == 3 then
-        pagina3()
-    end
-
+    if paginas[pantalla] then paginas[pantalla]() end
+    if not mantenerSeleccion then interf.seleccionado = 1 end
+    interf.seleccionado = math.min(interf.seleccionado, math.max(1, #interf.elementos))
 end
 
-function interf.dibijarElementos()    
-    validar()
-     for i=1,#interf.elementos,1 do       
-            dibujarText(interf.elementos[i])                     
-    end 
-    love.graphics.print(interf.even) 
+function interf.enMenu()
+    return interf.even ~= interf.JUGANDO
+end
+
+------------------------------------------------------------------ dibujo
+
+local function dibujarElemento(ele, activo)
+    love.graphics.setColor(activo and colores.cajaHover or colores.caja)
+    love.graphics.rectangle("fill", ele.x, ele.y, ele.w, ele.h, 6, 6)
+    if activo then
+        love.graphics.setColor(colores.acento)
+        love.graphics.rectangle("line", ele.x, ele.y, ele.w, ele.h, 6, 6)
+    end
+
+    local th = ele.texto:getHeight()
+    local ty = ele.y + (ele.h - th) / 2
+    love.graphics.setColor(activo and colores.acento or colores.texto)
+
+    if ele.tipo == "boton" then
+        love.graphics.draw(ele.texto, ele.x + (ele.w - ele.texto:getWidth()) / 2, ty)
+        return
+    end
+
+    love.graphics.draw(ele.texto, ele.x + 12, ty)
+    local izq, der = zonasFlechas(ele)
+    love.graphics.setColor(colores.tenue)
+    love.graphics.printf("<", font, izq.x, ty, izq.w, "center")
+    love.graphics.printf(">", font, der.x, ty, der.w, "center")
+    love.graphics.setColor(colores.texto)
+    love.graphics.printf(valorTexto(ele), font, izq.x + izq.w, ty, der.x - izq.x - izq.w, "center")
+end
+
+function interf.dibijarElementos()
+    love.graphics.clear(colores.fondo)
+    if titulo then
+        love.graphics.setColor(colores.acento)
+        love.graphics.draw(titulo, math.floor((love.graphics.getWidth() - titulo:getWidth()) / 2), 50)
+    end
+    for i, ele in ipairs(interf.elementos) do
+        dibujarElemento(ele, i == interf.seleccionado)
+    end
+    if interf.mensajeError then
+        love.graphics.setColor(colores.error)
+        love.graphics.printf(interf.mensajeError, font, 40, love.graphics.getHeight() - 90,
+            love.graphics.getWidth() - 80, "center")
+    end
+    love.graphics.setColor(colores.tenue)
+    love.graphics.print("Flechas/raton para navegar - Enter para elegir - Esc para volver",
+        font, 20, love.graphics.getHeight() - 36)
+    love.graphics.setColor(1, 1, 1)
+end
+
+------------------------------------------------------------------ entrada
+
+local function activar(ele)
+    if not ele then return end
+    if ele.tipo == "boton" then
+        ele.accion()
+    else
+        cambiar(ele, 1)
+    end
+end
+
+function interf.mousemoved(x, y)
+    for i, ele in ipairs(interf.elementos) do
+        if dentro(x, y, ele) then interf.seleccionado = i end
+    end
 end
 
 function interf.mousehandler(x, y, button)
-       if button == 1 then
-          for i =1,#interf.elementos,1 do
-                event(x,y,interf.elementos[i]) 
-          end
-       end        
-end 
+    if button ~= 1 then return end
+    for i, ele in ipairs(interf.elementos) do
+        if dentro(x, y, ele) then
+            interf.seleccionado = i
+            if ele.tipo == "boton" then
+                ele.accion()
+            else
+                local izq = zonasFlechas(ele)
+                cambiar(ele, x < izq.x + izq.w and -1 or 1)
+            end
+            return
+        end
+    end
+end
 
-function pagina1()
-        
-        addElement(1,100,100,"Jugar",2,2,1,1)
-        --addElement(1,100,200,"Personalizar",1,3,1,1)
-        addElement(1,100,300,"Salir",1,2,1,1)
-        love.graphics.setBackgroundColor(46/255,64/255,83/255)        
-end 
-function pagina3()
-        
-    
-    addElement(10,100,100,"Seguir jugando",2,10,1,1)
-    --addElement(10,100,200,"Configuraciones",1,3,1,1)
-    addElement(10,100,300,"Salir pantalla inicio",1,2,1,1)        
-end 
-function pagina2() 
-   -- addElement(tipo,x,y,val,seg,id,ty,tp)
-        addElement(1,100,100,"Modo de juego: ",1,0,1,1)     
-        addElement(10,160,130,"Team Slayer",1,7,1,1)     
-        addElement(10,160,160,"Capture The Flag",2,7,1,1)     
-        addElement(10,160,190,"King Of The Hill",3,7,1,1)     
-        addElement(10,160,220,"Crazy Ball",4,7,1,1)                
-              
-        interf.addUIElement(100,260,2,"Jugadores: ",1,1,1,1,0.23,0,1,1,1,2)
-        interf.addUIElement(270,260,8," + ",1,1,1,1,0.23,4,1,1,1,1)
-        interf.addUIElement(300,260,8," - ",1,1,1,1,0.23,5,1,1,1,1)
-
-        interf.addUIElement(100,290,4,"Modo de juego:",1,1,1,1,0.23,0,1,1,1,1)
-
-        if interf.ini.modo ==1 then
-            addElement(3,100,320,"Numero de muertes:",1,1,1,2)
-        end  
-        if interf.ini.modo ==2 then
-            addElement(6,100,320,"Rondas: ",2,1,4,2)
-            addElement(5,100,350,"Capturas: ",2,1,5,2)
-        end 
-        if interf.ini.modo ==3 then 
-            addElement(7,100,320,"tiempo: ",2,1,5,2)
-            addElement(6,100,350,"Rondas: ",2,1,4,2)
-        end 
-        if interf.ini.modo ==4 then
-            addElement(7,100,320,"tiempo: ",2,1,5,2)
-            addElement(6,100,350,"Rondas: ",2,1,4,2)
-        end 
-
-        addElement(1,100,390,"Jugar",2,10,1,1)
-        
-        interf.addUIElement(100,420,1,"Salir",1,1,1,1,0.23,2,1,1,1,1)        
-
-        
-end 
- 
-
- 
-
+function interf.keypressed(key)
+    local n = #interf.elementos
+    local ele = interf.elementos[interf.seleccionado]
+    if key == "up" or key == "w" then
+        interf.seleccionado = (interf.seleccionado - 2) % n + 1
+    elseif key == "down" or key == "s" then
+        interf.seleccionado = interf.seleccionado % n + 1
+    elseif (key == "left" or key == "a") and ele and ele.tipo ~= "boton" then
+        cambiar(ele, -1)
+    elseif (key == "right" or key == "d") and ele and ele.tipo ~= "boton" then
+        cambiar(ele, 1)
+    elseif key == "return" or key == "kpenter" or key == "space" then
+        activar(ele)
+    elseif key == "escape" then
+        if interf.even == interf.PAUSA then
+            interf.irA(interf.JUGANDO)
+        elseif interf.even == interf.CONFIG then
+            interf.irA(interf.MENU)
+        end
+    end
+end
 
 return interf

@@ -101,7 +101,7 @@ function bolaL.inputP(dt,jugador,avanzar,retroceder,izquierda,derecha,disparar,m
         bolaL.entidades.plantarMina(bolaL.entidades.jugadores[jugador])
     end
     if love.keyboard.isDown(pusa) then
-        inter.even = 3
+        interf.irA(interf.PAUSA)
     end 
 
 end
