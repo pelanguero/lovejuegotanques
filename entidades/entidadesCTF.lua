@@ -189,42 +189,32 @@ function entidadesCTF.keypressed( key,scancode,isrepeat)
 end
 
 function entidadesCTF.eliminarParticulas()
-    if #entidadesCTF.particulas>0 then
-        for i=1,#entidadesCTF.proyectiles do
-            if entidadesCTF.particulas[i]~=nil then
-                if entidadesCTF.proyectiles[i].vida<=0 then
-                    table.remove( entidadesCTF.particulas,i)
-                end
-            end
+    for i=#entidadesCTF.particulas,1,-1 do
+        if entidadesCTF.particulas[i].vida<=0 then
+            table.remove(entidadesCTF.particulas,i)
         end
     end
 end
 
 function entidadesCTF.actualizarProyectiles(dt)
-
+    entidadesCTF.eliminarParticulas()
     for i=1,#entidadesCTF.particulas do
-       
         entidadesCTF.particulas[i].vida=entidadesCTF.particulas[i].vida-1*dt
-    
     end
-
-    if #entidadesCTF.proyectiles>0 then
-        for i=1,#entidadesCTF.proyectiles do
-            if  entidadesCTF.proyectiles[i]~=nil then
-            if  entidadesCTF.proyectiles[i].vida<1 then
-            table.remove( entidadesCTF.proyectiles, i)
-            end
-            end
+    -- elimina balas y minas agotadas (recorrido inverso para no saltar elementos)
+    for i=#entidadesCTF.proyectiles,1,-1 do
+        if entidadesCTF.proyectiles[i].vida<1 then
+            table.remove(entidadesCTF.proyectiles,i)
         end
-
-        for i=1,#entidadesCTF.proyectiles do 
-            if entidadesCTF.proyectiles[i].tipo ==1 then
-            entidadesCTF.proyectiles[i].posY=entidadesCTF.proyectiles[i].posY-entidadesCTF.proyectiles[i].magnitud*math.sin(entidadesCTF.proyectiles[i].angulo-ssangulo)*dt
-            entidadesCTF.proyectiles[i].posX=entidadesCTF.proyectiles[i].posX-entidadesCTF.proyectiles[i].magnitud*math.cos(entidadesCTF.proyectiles[i].angulo-ssangulo)*dt
-            else
-                entidadesCTF.proyectiles[i].vida=entidadesCTF.proyectiles[i].vida-1*dt
-            end    
+    end
+    for i=1,#entidadesCTF.proyectiles do
+        local p=entidadesCTF.proyectiles[i]
+        if p.tipo==1 then
+            p.posY=p.posY-p.magnitud*math.sin(p.angulo-ssangulo)*dt
+            p.posX=p.posX-p.magnitud*math.cos(p.angulo-ssangulo)*dt
         end
+        -- balas y minas duran `vida` segundos
+        p.vida=p.vida-1*dt
     end
     for i=1,#entidadesCTF.powerUps do
         if entidadesCTF.powerUps[i].vida<61 and entidadesCTF.powerUps[i].vida>1 then
@@ -441,6 +431,8 @@ function entidadesCTF.desactivarPu(tipo,ply)
 end
 
 function entidadesCTF.spawnearJugadores(ent)
+    ent.body:setLinearVelocity(0,0)
+    ent.magnitud=0
     ent.body:setX(entidadesCTF.spawns[ent.equipo].x)
     ent.body:setY(entidadesCTF.spawns[ent.equipo].y)
     ent.energia=100
@@ -517,8 +509,6 @@ function entidadesCTF.dibujar(eex,eey,canv,xa,ya)
             end
     end
 
-    love.graphics.print(tostring(entidadesCTF.puntuaciones[1].puntos),50,500)
-    love.graphics.print(tostring(entidadesCTF.puntuaciones[2].puntos),50,550)
 
     love.graphics.setCanvas()
 end  

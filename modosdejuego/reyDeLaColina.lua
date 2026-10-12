@@ -9,6 +9,7 @@ local inputTres={}
 local inputCuatro={}
 local pausa=true
 local modo=0
+local hud=require "hud"
 function rey.new(ancc,altt,nju,tblcontroles)
     rey.mapa.new("../mapas/rey","//assets/terrainTiles_default.png")
     ancho=rey.mapa.tablamapa.width*64
@@ -101,22 +102,21 @@ function rey.dibujar()
     --aqui tambien podría usar un ciclo
     if modo==1 then
         rey.camara(1,1,nil,rey.ancho,rey.alto)
-        print("pelanguero")
     elseif modo==2 then
         rey.camara(1,1,rey.pantallas[1].canvas,rey.ancho/2,rey.alto)
         rey.camara(1,2,rey.pantallas[2].canvas,rey.ancho/2,rey.alto)
         love.graphics.draw(rey.pantallas[1].canvas,rey.pantallas[1].x,rey.pantallas[1].y)
         love.graphics.draw(rey.pantallas[2].canvas,rey.pantallas[2].x,rey.pantallas[2].y)
     elseif modo==3 then
-        rey.camara(1,2,rey.pantallas[1].canvas,rey.ancho/2,rey.alto/2)
-        rey.camara(1,1,rey.pantallas[2].canvas,rey.ancho/2,rey.alto/2)
-        rey.camara(1,3,rey.pantallas[2].canvas,rey.ancho/2,rey.alto/2)
+        rey.camara(1,1,rey.pantallas[1].canvas,rey.ancho/2,rey.alto/2)
+        rey.camara(1,2,rey.pantallas[2].canvas,rey.ancho/2,rey.alto/2)
+        rey.camara(1,3,rey.pantallas[3].canvas,rey.ancho/2,rey.alto/2)
         love.graphics.draw(rey.pantallas[1].canvas,rey.pantallas[1].x,rey.pantallas[1].y)
         love.graphics.draw(rey.pantallas[2].canvas,rey.pantallas[2].x,rey.pantallas[2].y)
         love.graphics.draw(rey.pantallas[3].canvas,rey.pantallas[3].x,rey.pantallas[3].y)
     elseif modo==4 then
-        rey.camara(1,2,rey.pantallas[1].canvas,rey.ancho/2,rey.alto/2)
-        rey.camara(1,1,rey.pantallas[2].canvas,rey.ancho/2,rey.alto/2)
+        rey.camara(1,1,rey.pantallas[1].canvas,rey.ancho/2,rey.alto/2)
+        rey.camara(1,2,rey.pantallas[2].canvas,rey.ancho/2,rey.alto/2)
         rey.camara(1,3,rey.pantallas[3].canvas,rey.ancho/2,rey.alto/2)
         rey.camara(1,4,rey.pantallas[4].canvas,rey.ancho/2,rey.alto/2)
         love.graphics.draw(rey.pantallas[1].canvas,rey.pantallas[1].x,rey.pantallas[1].y)
@@ -124,6 +124,10 @@ function rey.dibujar()
         love.graphics.draw(rey.pantallas[3].canvas,rey.pantallas[3].x,rey.pantallas[3].y)
         love.graphics.draw(rey.pantallas[4].canvas,rey.pantallas[4].x,rey.pantallas[4].y)
     end
+    if modo>=2 then
+        hud.divisor(rey.ancho,rey.alto)
+    end
+    hud.marcador(rey.entidades.puntuaciones,rey.ancho)
     
 end
 
@@ -146,41 +150,15 @@ function rey.camara(equipo,jugador,canvasss,llancho,llalto)
     
 end
 
---[[function rey.dibujar()
-rey.camara(1,1,nil)
-end]]
-
-function rey.camara(equipo,jugador,canvasss)
-    local xsx=rey.entidades.jugadores[jugador].posX-rey.mdx
-    --print(rey.entidades.jugadores[2].vida)
-    if xsx<0 then 
-        xsx=0
-    elseif xsx>ancho-rey.ancho then
-        xsx=ancho-rey.ancho
-    end
-    local ysy=rey.entidades.jugadores[jugador].posY-rey.mdy
-    if ysy<0 then 
-        ysy=0
-    elseif ysy>alto-rey.alto then
-        ysy=alto-rey.alto
-    end
-    rey.mapa.dibujar(xsx,ysy,rey.ancho,rey.alto,canvasss)
-    rey.entidades.dibujar(xsx,ysy,canvasss,rey.ancho,rey.alto)
-    
-end
 --Mantiene a la entidad dentro de los limites del mapa
 function rey.corregirPosicion(entt)
-if entt.posX>ancho-entt.medX then
-    entt.posX=ancho-entt.medX
-elseif entt.posX<entt.medX then
-    entt.posX=entt.medX
-end
-if entt.posY>ancho-entt.medY then
-    entt.posY=ancho-entt.medY
-elseif entt.posY<entt.medY then
-    entt.posY=entt.medY
-end
-
+    local x,y=entt.body:getPosition()
+    local cx=math.max(entt.medX,math.min(ancho-entt.medX,x))
+    local cy=math.max(entt.medY,math.min(alto-entt.medY,y))
+    if cx~=x or cy~=y then
+        entt.body:setPosition(cx,cy)
+        entt.posX,entt.posY=cx,cy
+    end
 end
 
 function rey.inputP(dt,jugador,avanzar,retroceder,izquierda,derecha,disparar,mina)
@@ -206,6 +184,9 @@ end
 function rey.proupdate(dt)
 rey.entidades.actualizarphy(dt)
 rey.entidades.actualizarJugadores(dt)
+for i=1,#rey.entidades.jugadores do
+    rey.corregirPosicion(rey.entidades.jugadores[i])
+end
 rey.entidades.actualizarProyectiles(dt)
 rey.entidades.detectarColision(dt)
 end

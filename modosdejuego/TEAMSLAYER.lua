@@ -9,6 +9,7 @@ local inputTres={}
 local inputCuatro={}
 local pausa=true
 local modo=0
+local hud=require "hud"
 function ts.new(ancc,altt)
     ts.mapa.new("../mapas/TS","//assets/terrainTiles_default.png")
     ancho=ts.mapa.tablamapa.width*64
@@ -107,15 +108,15 @@ function ts.dibujar()
         love.graphics.draw(ts.pantallas[1].canvas,ts.pantallas[1].x,ts.pantallas[1].y)
         love.graphics.draw(ts.pantallas[2].canvas,ts.pantallas[2].x,ts.pantallas[2].y)
     elseif modo==3 then
-        ts.camara(1,2,ts.pantallas[1].canvas,ts.ancho/2,ts.alto/2)
-        ts.camara(1,1,ts.pantallas[2].canvas,ts.ancho/2,ts.alto/2)
-        ts.camara(1,3,ts.pantallas[2].canvas,ts.ancho/2,ts.alto/2)
+        ts.camara(1,1,ts.pantallas[1].canvas,ts.ancho/2,ts.alto/2)
+        ts.camara(1,2,ts.pantallas[2].canvas,ts.ancho/2,ts.alto/2)
+        ts.camara(1,3,ts.pantallas[3].canvas,ts.ancho/2,ts.alto/2)
         love.graphics.draw(ts.pantallas[1].canvas,ts.pantallas[1].x,ts.pantallas[1].y)
         love.graphics.draw(ts.pantallas[2].canvas,ts.pantallas[2].x,ts.pantallas[2].y)
         love.graphics.draw(ts.pantallas[3].canvas,ts.pantallas[3].x,ts.pantallas[3].y)
     elseif modo==4 then
-        ts.camara(1,2,ts.pantallas[1].canvas,ts.ancho/2,ts.alto/2)
-        ts.camara(1,1,ts.pantallas[2].canvas,ts.ancho/2,ts.alto/2)
+        ts.camara(1,1,ts.pantallas[1].canvas,ts.ancho/2,ts.alto/2)
+        ts.camara(1,2,ts.pantallas[2].canvas,ts.ancho/2,ts.alto/2)
         ts.camara(1,3,ts.pantallas[3].canvas,ts.ancho/2,ts.alto/2)
         ts.camara(1,4,ts.pantallas[4].canvas,ts.ancho/2,ts.alto/2)
         love.graphics.draw(ts.pantallas[1].canvas,ts.pantallas[1].x,ts.pantallas[1].y)
@@ -123,6 +124,10 @@ function ts.dibujar()
         love.graphics.draw(ts.pantallas[3].canvas,ts.pantallas[3].x,ts.pantallas[3].y)
         love.graphics.draw(ts.pantallas[4].canvas,ts.pantallas[4].x,ts.pantallas[4].y)
     end
+    if modo>=2 then
+        hud.divisor(ts.ancho,ts.alto)
+    end
+    hud.marcador(ts.entidades.puntuaciones,ts.ancho)
     
 end
 
@@ -146,17 +151,13 @@ function ts.camara(equipo,jugador,canvasss,llancho,llalto)
 end
 --Mantiene a la entidad dentro de los limites del mapa
 function ts.corregirPosicion(entt)
-if entt.posX>ancho-entt.medX then
-    entt.posX=ancho-entt.medX
-elseif entt.posX<entt.medX then
-    entt.posX=entt.medX
-end
-if entt.posY>ancho-entt.medY then
-    entt.posY=ancho-entt.medY
-elseif entt.posY<entt.medY then
-    entt.posY=entt.medY
-end
-
+    local x,y=entt.body:getPosition()
+    local cx=math.max(entt.medX,math.min(ancho-entt.medX,x))
+    local cy=math.max(entt.medY,math.min(alto-entt.medY,y))
+    if cx~=x or cy~=y then
+        entt.body:setPosition(cx,cy)
+        entt.posX,entt.posY=cx,cy
+    end
 end
 
 function ts.inputP(dt,jugador,avanzar,retroceder,izquierda,derecha,disparar,mina)
@@ -183,6 +184,9 @@ function ts.proupdate(dt,joyss)
     if pausa then
         ts.entidades.actualizarphy(dt)
         ts.entidades.actualizarJugadores(dt,joyss)
+        for i=1,#ts.entidades.jugadores do
+            ts.corregirPosicion(ts.entidades.jugadores[i])
+        end
         ts.entidades.actualizarProyectiles(dt)
         ts.entidades.detectarColision(dt)
     end

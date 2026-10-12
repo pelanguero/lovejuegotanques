@@ -18,15 +18,19 @@ local equipo={}
 table.insert(entidadesTS.equipos, equipo)
 end
 
+-- Impacto de bala/mina contra un tanque rival.
+-- Los jugadores se reconocen por .input y los proyectiles por .tipo
 local begin_contact_callback = function(fixture_a, fixture_b, contact)
-    print("empezo colision")
+    local jug, proy = fixture_a:getUserData(), fixture_b:getUserData()
+    if jug and jug.tipo then jug, proy = proy, jug end
+    if jug and jug.input and proy and proy.tipo and proy.vida>=1 and jug.equipo~=proy.equipo then
+        jug.vida=jug.vida-proy.danho
+        jug.eqimpac=proy.equipo
+        proy.vida=0
+    end
 end
-  
-local end_contact_callback = function(fixture_a, fixture_b, contact)
-    print("termino colision")
-end
-  
-world:setCallbacks(begin_contact_callback, end_contact_callback, nil, nil)
+
+world:setCallbacks(begin_contact_callback, nil, nil, nil)
 
 function entidadesTS.agregarSpawn(spx,spy)
 local spawn={}
@@ -124,6 +128,8 @@ function entidadesTS.agregarProyectil(nEqu,posX,posY,strimagen,imagen,angulo,mag
         ju.shape=love.physics.newRectangleShape(8,14)
     end
     ju.fixture=love.physics.newFixture(ju.body,ju.shape,1)
+    -- sensor: detecta impactos sin empujar a los tanques
+    ju.fixture:setSensor(true)
     ju.categoria=categorias[ju.equipo]
     ju.mascara=mascaras[ju.equipo]
     ju.fixture:setFilterData(ju.categoria, ju.mascara,0)
@@ -168,13 +174,9 @@ function entidadesTS.eliminarProyectiles(limitex,limitey)
 end
 
 function entidadesTS.eliminarParticulas()
-    if #entidadesTS.particulas>0 then
-        for i=1,#entidadesTS.proyectiles do
-            if entidadesTS.particulas[i]~=nil then
-                if entidadesTS.proyectiles[i].vida<=0 then
-                    table.remove( entidadesTS.particulas,i)
-                end
-            end
+    for i=#entidadesTS.particulas,1,-1 do
+        if entidadesTS.particulas[i].vida<=0 then
+            table.remove(entidadesTS.particulas,i)
         end
     end
 end
@@ -182,27 +184,21 @@ end
 function entidadesTS.actualizarProyectiles(dt)
     entidadesTS.eliminarParticulas()
     for i=1,#entidadesTS.particulas do
-       
         entidadesTS.particulas[i].vida=entidadesTS.particulas[i].vida-1*dt
-    
     end
-    if #entidadesTS.proyectiles>0 then
-        for i=1,#entidadesTS.proyectiles do
-            if  entidadesTS.proyectiles[i]~=nil then
-            if  entidadesTS.proyectiles[i].vida<1 then
-            table.remove( entidadesTS.proyectiles, i)
-            end
-            end
+    -- elimina balas y minas agotadas junto con su cuerpo fisico
+    for i=#entidadesTS.proyectiles,1,-1 do
+        local p=entidadesTS.proyectiles[i]
+        if p.vida<1 then
+            p.body:destroy()
+            table.remove(entidadesTS.proyectiles,i)
         end
-
-        for i=1,#entidadesTS.proyectiles do 
-            if entidadesTS.proyectiles[i].tipo ==1 then
-            entidadesTS.proyectiles[i].posY=entidadesTS.proyectiles[i].posY-entidadesTS.proyectiles[i].magnitud*math.sin(entidadesTS.proyectiles[i].angulo-ssangulo)*dt
-            entidadesTS.proyectiles[i].posX=entidadesTS.proyectiles[i].posX-entidadesTS.proyectiles[i].magnitud*math.cos(entidadesTS.proyectiles[i].angulo-ssangulo)*dt
-            else
-                entidadesTS.proyectiles[i].vida=entidadesTS.proyectiles[i].vida-1*dt
-            end    
-        end
+    end
+    for i=1,#entidadesTS.proyectiles do
+        local p=entidadesTS.proyectiles[i]
+        p.posX,p.posY=p.body:getPosition()
+        -- balas y minas duran `vida` segundos
+        p.vida=p.vida-1*dt
     end
     for i=1,#entidadesTS.powerUps do
         if entidadesTS.powerUps[i].vida<61 and entidadesTS.powerUps[i].vida>1 then
@@ -260,6 +256,7 @@ function entidadesTS.actualizarJugadorMando(dt,pllayer,jjoys)
 end
 ]]
 function entidadesTS.actualizarJugadorTeclado(dt,pllayer)
+        pllayer.posX,pllayer.posY=pllayer.body:getPosition()
         local limiteVelocidad=100
         local tempx,tempy=pllayer.body:getLinearVelocity()
         local magnitud=math.sqrt((tempx*tempx)+(tempy*tempy))
@@ -311,9 +308,6 @@ function entidadesTS.actualizarJugadorTeclado(dt,pllayer)
         if pllayer.magnitud == pllayer.velocidad and pllayer.eparticula>=1 then
             entidadesTS.añadirParticulas(pllayer,10)
             pllayer.eparticula=pllayer.eparticula-9.4*dt
-        end
-        if pllayer.banderaa then
-            entidadesBol.puntuaciones[pllayer.equipo].puntos=entidadesBol.puntuaciones[pllayer.equipo].puntos+1*dt
         end
 end
 
@@ -400,14 +394,16 @@ end
 function entidadesTS.matarJugadores()
     for i=1,#entidadesTS.jugadores do
         if entidadesTS.jugadores[i].vida<1 then
-            entidadesTS.puntuaciones[entidadesTS.jugadores[i].eqimpac].puntos=entidadesTS.puntuaciones[entidadesTS.jugadores[i].eqimpac].puntos+1
+            local marcador=entidadesTS.puntuaciones[entidadesTS.jugadores[i].eqimpac]
+            if marcador then
+                marcador.puntos=marcador.puntos+1
+            end
             if entidadesTS.jugadores[i].spawnear then
             entidadesTS.spawnearJugadores(entidadesTS.jugadores[i])
             else
             entidadesTS.jugadores[i].imagen=calavera
             entidadesTS.jugadores[i].magnitud=0   
             end
-            print(entidadesTS.puntuaciones[1].puntos)
         end
     end
 end
@@ -445,6 +441,7 @@ function entidadesTS.desactivarPu(tipo,ply)
 end
 
 function entidadesTS.spawnearJugadores(ent)
+    ent.body:setLinearVelocity(0,0)
     ent.body:setX(entidadesTS.spawns[ent.equipo].x)
     ent.body:setY(entidadesTS.spawns[ent.equipo].y)
     ent.posX=entidadesTS.spawns[ent.equipo].x

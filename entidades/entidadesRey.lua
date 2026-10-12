@@ -138,13 +138,9 @@ function entidadesRey.plantarMina(rrr)
 end
 
 function entidadesRey.eliminarParticulas()
-    if #entidadesRey.particulas>0 then
-        for i=1,#entidadesRey.proyectiles do
-            if entidadesRey.particulas[i]~=nil then
-                if entidadesRey.proyectiles[i].vida<=0 then
-                    table.remove(entidadesRey.particulas,i)
-                end
-            end
+    for i=#entidadesRey.particulas,1,-1 do
+        if entidadesRey.particulas[i].vida<=0 then
+            table.remove(entidadesRey.particulas,i)
         end
     end
 end
@@ -183,27 +179,22 @@ end
 function entidadesRey.actualizarProyectiles(dt)
     entidadesRey.eliminarParticulas()
     for i=1,#entidadesRey.particulas do
-       
         entidadesRey.particulas[i].vida=entidadesRey.particulas[i].vida-1*dt
-    
     end
-    if #entidadesRey.proyectiles>0 then
-        for i=1,#entidadesRey.proyectiles do
-            if  entidadesRey.proyectiles[i]~=nil then
-            if  entidadesRey.proyectiles[i].vida<1 then
-            table.remove( entidadesRey.proyectiles, i)
-            end
-            end
+    -- elimina balas y minas agotadas (recorrido inverso para no saltar elementos)
+    for i=#entidadesRey.proyectiles,1,-1 do
+        if entidadesRey.proyectiles[i].vida<1 then
+            table.remove(entidadesRey.proyectiles,i)
         end
-
-        for i=1,#entidadesRey.proyectiles do 
-            if entidadesRey.proyectiles[i].tipo ==1 then
-            entidadesRey.proyectiles[i].posY=entidadesRey.proyectiles[i].posY-entidadesRey.proyectiles[i].magnitud*math.sin(entidadesRey.proyectiles[i].angulo-ssangulo)*dt
-            entidadesRey.proyectiles[i].posX=entidadesRey.proyectiles[i].posX-entidadesRey.proyectiles[i].magnitud*math.cos(entidadesRey.proyectiles[i].angulo-ssangulo)*dt
-            else
-                entidadesRey.proyectiles[i].vida=entidadesRey.proyectiles[i].vida-1*dt
-            end    
+    end
+    for i=1,#entidadesRey.proyectiles do
+        local p=entidadesRey.proyectiles[i]
+        if p.tipo==1 then
+            p.posY=p.posY-p.magnitud*math.sin(p.angulo-ssangulo)*dt
+            p.posX=p.posX-p.magnitud*math.cos(p.angulo-ssangulo)*dt
         end
+        -- balas y minas duran `vida` segundos
+        p.vida=p.vida-1*dt
     end
     for i=1,#entidadesRey.powerUps do
         if entidadesRey.powerUps[i].vida<61 and entidadesRey.powerUps[i].vida>1 then
@@ -377,9 +368,9 @@ function entidadesRey.espColina(dt)
     if #dentroArea ~= 0 then
         for i=1, #dentroArea do              
             if eqpo == 0 then
-                eqpo = entidadesRey.jugadores[i].equipo
+                eqpo = dentroArea[i].equipo
             end
-            if eqpo ~=entidadesRey.jugadores[i].equipo then                
+            if eqpo ~=dentroArea[i].equipo then                
                 return 0
             end 
         end
@@ -474,6 +465,8 @@ function entidadesRey.desactivarPu(tipo,ply)
 end
 
 function entidadesRey.spawnearJugadores(ent)
+    ent.body:setLinearVelocity(0,0)
+    ent.magnitud=0
     ent.body:setX(entidadesRey.spawns[ent.equipo].x)
     ent.body:setY(entidadesRey.spawns[ent.equipo].y)
     ent.banderaa=false
@@ -544,8 +537,6 @@ function entidadesRey.dibujar(eex,eey,canv,xa,ya)
             end
     end
     
-    love.graphics.print(tostring(entidadesRey.puntuaciones[1].puntos),50,500)
-    love.graphics.print(tostring(entidadesRey.puntuaciones[2].puntos),50,550)
     
     --hud.dibujar(entidadesRey.jugadores[1])
 

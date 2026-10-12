@@ -172,13 +172,9 @@ function entidadesBol.eliminarProyectiles(limitex,limitey)
 end
 
 function entidadesBol.eliminarParticulas()
-    if #entidadesBol.particulas>0 then
-        for i=1,#entidadesBol.proyectiles do
-            if entidadesBol.particulas[i]~=nil then
-                if entidadesBol.proyectiles[i].vida<=0 then
-                    table.remove( entidadesBol.particulas,i)
-                end
-            end
+    for i=#entidadesBol.particulas,1,-1 do
+        if entidadesBol.particulas[i].vida<=0 then
+            table.remove(entidadesBol.particulas,i)
         end
     end
 end
@@ -186,27 +182,22 @@ end
 function entidadesBol.actualizarProyectiles(dt)
     entidadesBol.eliminarParticulas()
     for i=1,#entidadesBol.particulas do
-       
         entidadesBol.particulas[i].vida=entidadesBol.particulas[i].vida-1*dt
-    
     end
-    if #entidadesBol.proyectiles>0 then
-        for i=1,#entidadesBol.proyectiles do
-            if  entidadesBol.proyectiles[i]~=nil then
-            if  entidadesBol.proyectiles[i].vida<1 then
-            table.remove( entidadesBol.proyectiles, i)
-            end
-            end
+    -- elimina balas y minas agotadas (recorrido inverso para no saltar elementos)
+    for i=#entidadesBol.proyectiles,1,-1 do
+        if entidadesBol.proyectiles[i].vida<1 then
+            table.remove(entidadesBol.proyectiles,i)
         end
-
-        for i=1,#entidadesBol.proyectiles do 
-            if entidadesBol.proyectiles[i].tipo ==1 then
-            entidadesBol.proyectiles[i].posY=entidadesBol.proyectiles[i].posY-entidadesBol.proyectiles[i].magnitud*math.sin(entidadesBol.proyectiles[i].angulo-ssangulo)*dt
-            entidadesBol.proyectiles[i].posX=entidadesBol.proyectiles[i].posX-entidadesBol.proyectiles[i].magnitud*math.cos(entidadesBol.proyectiles[i].angulo-ssangulo)*dt
-            else
-                entidadesBol.proyectiles[i].vida=entidadesBol.proyectiles[i].vida-1*dt
-            end    
+    end
+    for i=1,#entidadesBol.proyectiles do
+        local p=entidadesBol.proyectiles[i]
+        if p.tipo==1 then
+            p.posY=p.posY-p.magnitud*math.sin(p.angulo-ssangulo)*dt
+            p.posX=p.posX-p.magnitud*math.cos(p.angulo-ssangulo)*dt
         end
+        -- balas y minas duran `vida` segundos
+        p.vida=p.vida-1*dt
     end
     for i=1,#entidadesBol.powerUps do
         if entidadesBol.powerUps[i].vida<61 and entidadesBol.powerUps[i].vida>1 then
@@ -442,6 +433,8 @@ function entidadesBol.desactivarPu(tipo,ply)
 end
 
 function entidadesBol.spawnearJugadores(ent)
+    ent.body:setLinearVelocity(0,0)
+    ent.magnitud=0
     ent.body:setX(entidadesBol.spawns[ent.equipo].x)
     ent.body:setY(entidadesBol.spawns[ent.equipo].y)
     ent.banderaa=false
@@ -518,8 +511,6 @@ function entidadesBol.dibujar(eex,eey,canv,xa,ya)
             end
     end
 
-    love.graphics.print(tostring(entidadesBol.puntuaciones[1].puntos),50,500)
-    love.graphics.print(tostring(entidadesBol.puntuaciones[2].puntos),50,550)
 
     love.graphics.setCanvas()
 end  
