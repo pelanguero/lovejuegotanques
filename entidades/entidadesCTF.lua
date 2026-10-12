@@ -1,4 +1,8 @@
 local entidadesCTF={jugadores={},proyectiles={},powerUps={},spawns={},banderas={},ancho=850,alto=850,puntuaciones={},particulas={}}
+local powerups=require "powerups"
+-- velocidad de las balas y velocidad maxima de un tanque sin turbo
+entidadesCTF.velBala=600
+entidadesCTF.velMaxJugador=300
 local tanques ={"//assets/tanques/tank_dark.png","//assets/tanques/tank_red.png","//assets/tanques/tank_green.png"}
 local proyectiles={"//assets/proyectiles/bulletDark1_outline.png","//assets/proyectiles/bulletRed1_outline.png","//assets/proyectiles/bulletGreen1_outline.png"}
 local mina=love.graphics.newImage("//assets/mina.png")
@@ -9,7 +13,6 @@ local mcbs=cbs/2
 local calavera=love.graphics.newImage("//assets/skull.png")
 local particulas=love.graphics.newImage("//assets/explosion3.png")
 local llantas=love.graphics.newImage("//assets/tracksLarge.png")
-local caja=love.graphics.newImage("//assets/crateMetal.png")
 local cajam=love.graphics.newImage("//assets/crateWood.png")
 function entidadesCTF.agregarEquipo()
 local equipo={}
@@ -60,10 +63,10 @@ function entidadesCTF.resetBandera(band)
     band.vida=12
 end    
 
---tipo:1=tanque de energia plus,2=Sobreescudo,3=modificador de minas,4=velocidad plus
+-- tipos y efectos de los power-ups: powerups.lua
 
 function entidadesCTF.agregarPowerUp(pwx,pwy)
-    local tipo=math.random(1,4)
+    local tipo=powerups.tipoAlAzar()
     local pw={}
     pw.posX=pwx
     pw.posY=pwy
@@ -106,6 +109,8 @@ function entidadesCTF.agregarJugador(nEqu,posX,posY,strimagen,imagen,angulo,magn
     ju.eqimpac=0
     ju.spawnear=true
     ju.danhomina=50
+    ju.costoMina=50
+    ju.efectos={}
     ju.danhoproyectil=20
     ju.banderaa=false
     ju.band=0
@@ -147,16 +152,22 @@ function entidadesCTF.disparar(rrr)
     local py=rrr.posY-24*math.sin(rrr.angulo-ssangulo)
     --nEqu,posX,posY,strimagen,imagen,angulo,magnitud,danho,vida,powerUp,medX,medY,tamanho
     if rrr.energia>rrr.danhoproyectil then
-        entidadesCTF.agregarProyectil(rrr.equipo,px,py,1,nil,rrr.angulo,300,rrr.danhoproyectil,10,"ninguno",4,7,1,1)
+        if powerups.usarMisil(rrr) then
+            entidadesCTF.agregarProyectil(rrr.equipo,px,py,1,nil,rrr.angulo,powerups.velocidadMisil(entidadesCTF),powerups.DANHO_MISIL,powerups.DURACION_MISIL,"ninguno",4,7,1,powerups.TIPO_MISIL)
+            powerups.prepararMisil(entidadesCTF.proyectiles[#entidadesCTF.proyectiles])
+        else
+            entidadesCTF.agregarProyectil(rrr.equipo,px,py,1,nil,rrr.angulo,entidadesCTF.velBala,rrr.danhoproyectil,10,"ninguno",4,7,1,1)
+        end
         son.play(son.sun[3])
         rrr.energia=rrr.energia-rrr.danhoproyectil
     end
 end
 
 function entidadesCTF.plantarMina(rrr)
-    if rrr.energia>rrr.danhomina then
+    if rrr.energia>rrr.costoMina then
         entidadesCTF.agregarProyectil(rrr.equipo,rrr.posX,rrr.posY,1,nil,0,0,rrr.danhomina,10,"ninguno",12,12,1,2)
-        rrr.energia=rrr.energia-rrr.danhomina
+        rrr.energia=rrr.energia-rrr.costoMina
+        powerups.minaPlantada(rrr)
         son.play(son.mina[1])
     end
 end
@@ -216,13 +227,8 @@ function entidadesCTF.actualizarProyectiles(dt)
         -- balas y minas duran `vida` segundos
         p.vida=p.vida-1*dt
     end
-    for i=1,#entidadesCTF.powerUps do
-        if entidadesCTF.powerUps[i].vida<61 and entidadesCTF.powerUps[i].vida>1 then
-            entidadesCTF.powerUps[i].vida=entidadesCTF.powerUps[i].vida-1*dt
-        elseif entidadesCTF.powerUps[i].vida<1 then
-            entidadesCTF.powerUps[i].vida=70
-        end
-    end
+    powerups.actualizarCajas(entidadesCTF.powerUps,dt)
+    powerups.guiarMisiles(entidadesCTF,dt)
 
     for i=1,#entidadesCTF.banderas do
         if entidadesCTF.banderas[i].vida<0 then
@@ -283,6 +289,9 @@ end
 
 function entidadesCTF.actualizarJugadores(dt,joys)
     entidadesCTF.matarJugadores()
+    for i=1,#entidadesCTF.jugadores do
+        powerups.actualizar(entidadesCTF.jugadores[i],dt)
+    end
     for i=1,#entidadesCTF.jugadores do
         if entidadesCTF.jugadores[i].input.joystick then
             --entidadesCTF.actualizarJugadorMando(dt,entidadesCTF.jugadores[i])
@@ -399,35 +408,7 @@ function entidadesCTF.matarJugadores()
 end
 
 function entidadesCTF.procesarColPow(pU,ply)
-    if pU.tipo == 1 then
-        ply.energia=300
-        ply.limite=300
-        ply.ratio=80
-    elseif pU.tipo == 2 then
-        ply.vida=200
-    elseif pU.tipo == 3 then
-        ply.danhomina=200
-    elseif pU.tipo == 4 then
-        ply.magnitud=500
-    end
-end
-
-function entidadesCTF.desactivarPu(tipo,ply)
-    if tipo == 1 then
-        if ply.energia>100 then
-            ply.energia=100
-        end
-        ply.limite=100
-        ply.ratio=50
-    elseif tipo == 2 then
-        if ply.vida>100 then
-            ply.vida=100
-        end
-    elseif tipo == 3 then
-        ply.danhomina=50
-    elseif tipo == 4 then
-        ply.magnitud=300
-    end
+    powerups.aplicar(ply,pU.tipo)
 end
 
 function entidadesCTF.spawnearJugadores(ent)
@@ -439,6 +420,7 @@ function entidadesCTF.spawnearJugadores(ent)
     ent.limite=100
     ent.vida=100
     ent.ratio=50
+    powerups.reiniciar(ent)
 end
 
 
@@ -466,6 +448,7 @@ function entidadesCTF.dibujar(eex,eey,canv,xa,ya)
         if entidadesCTF.estaDentro(eex,eey,entidadesCTF.proyectiles[i],xa,ya) then
             local fx=entidadesCTF.proyectiles[i].posX-eex
             local fy=entidadesCTF.proyectiles[i].posY-eey
+            if entidadesCTF.proyectiles[i].tipo==powerups.TIPO_MISIL then powerups.dibujarEstelaMisil(entidadesCTF.proyectiles[i],fx,fy) end
             love.graphics.draw(entidadesCTF.proyectiles[i].imagen,fx,fy,entidadesCTF.proyectiles[i].angulo,entidadesCTF.proyectiles[i].tamanho,entidadesCTF.proyectiles[i].tamanho,entidadesCTF.proyectiles[i].medX,entidadesCTF.proyectiles[i].medY,0,0)
             --dibuja la caja de colision
         end
@@ -477,14 +460,7 @@ function entidadesCTF.dibujar(eex,eey,canv,xa,ya)
         if entidadesCTF.estaDentro(eex,eey,entidadesCTF.powerUps[i],xa,ya) then
             local fx=entidadesCTF.powerUps[i].posX-eex
             local fy=entidadesCTF.powerUps[i].posY-eey
-            if entidadesCTF.powerUps[i].vida>61 then
-                love.graphics.draw(caja,fx,fy,0,1,1,14,14,0,0)
-            else
-                love.graphics.setColor(0,255,0)
-                --math.rad(entidadesCTF.powerUps[i].vida*60)
-                love.graphics.arc("fill",fx,fy,30,0,math.rad(entidadesCTF.powerUps[i].vida*6))
-                love.graphics.setColor(255,255,255)
-            end
+            powerups.dibujarCaja(entidadesCTF.powerUps[i],fx,fy)
         end
     end
 
@@ -505,6 +481,7 @@ function entidadesCTF.dibujar(eex,eey,canv,xa,ya)
                 local fx=entidadesCTF.jugadores[i].posX-eex
                 local fy=entidadesCTF.jugadores[i].posY-eey
                 love.graphics.draw(entidadesCTF.jugadores[i].imagen,fx,fy,entidadesCTF.jugadores[i].angulo,entidadesCTF.jugadores[i].tamanho,entidadesCTF.jugadores[i].tamanho,entidadesCTF.jugadores[i].medX,entidadesCTF.jugadores[i].medY,0,0)
+                powerups.dibujarJugador(entidadesCTF.jugadores[i],fx,fy)
                 --dibuja la caja de colision
             end
     end

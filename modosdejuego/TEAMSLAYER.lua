@@ -147,6 +147,7 @@ function ts.camara(equipo,jugador,canvasss,llancho,llalto)
     end
     ts.mapa.dibujar(xsx,ysy,llancho,llalto,canvasss)
     ts.entidades.dibujar(xsx,ysy,canvasss,llancho,llalto)
+    hud.powerups(ts.entidades.jugadores[jugador],canvasss,llancho,llalto)
     
 end
 --Mantiene a la entidad dentro de los limites del mapa

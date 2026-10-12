@@ -147,6 +147,7 @@ function rey.camara(equipo,jugador,canvasss,llancho,llalto)
     end
     rey.mapa.dibujar(xsx,ysy,llancho,llalto,canvasss)
     rey.entidades.dibujar(xsx,ysy,canvasss,llancho,llalto)
+    hud.powerups(rey.entidades.jugadores[jugador],canvasss,llancho,llalto)
     
 end
 

@@ -1,4 +1,8 @@
 local entidadesTS={jugadores={},proyectiles={},powerUps={},spawns={},ancho=850,alto=850,puntuaciones={},particulas={},pantallas={}}
+local powerups=require "powerups"
+-- velocidad de las balas y velocidad maxima de un tanque sin turbo
+entidadesTS.velBala=600
+entidadesTS.velMaxJugador=100
 local tanques ={"//assets/tanques/tank_dark.png","//assets/tanques/tank_red.png","//assets/tanques/tank_green.png","//assets/tanques/tank_blue.png"}
 local proyectiles={"//assets/proyectiles/bulletDark1_outline.png","//assets/proyectiles/bulletRed1_outline.png","//assets/proyectiles/bulletGreen1_outline.png","//assets/proyectiles/bulletGreen1_outline.png"}
 local proyectilesImages={love.graphics.newImage(proyectiles[1]),love.graphics.newImage(proyectiles[2]),love.graphics.newImage(proyectiles[3]),love.graphics.newImage(proyectiles[4])}
@@ -12,7 +16,6 @@ local world=love.physics.newWorld(0,0,false)
 local calavera=love.graphics.newImage("//assets/skull.png")
 local llantas=love.graphics.newImage("//assets/tracksLarge.png")
 local particulas=love.graphics.newImage("//assets/explosion3.png")
-local caja=love.graphics.newImage("//assets/crateMetal.png")
 function entidadesTS.agregarEquipo()
 local equipo={}
 table.insert(entidadesTS.equipos, equipo)
@@ -38,10 +41,10 @@ spawn.x=spx
 spawn.y=spy
 table.insert( entidadesTS.spawns,spawn )
 end
---tipo:1=tanque de energia plus,2=Sobreescudo,3=modificador de minas,4=velocidad plus
+-- tipos y efectos de los power-ups: powerups.lua
 
 function entidadesTS.agregarPowerUp(pwx,pwy)
-    local tipo=math.random(1,4)
+    local tipo=powerups.tipoAlAzar()
     local pw={}
     pw.posX=pwx
     pw.posY=pwy
@@ -82,6 +85,8 @@ function entidadesTS.agregarJugador(nEqu,posX,posY,strimagen,imagen,angulo,magni
     ju.eqimpac=0
     ju.spawnear=true
     ju.danhomina=50
+    ju.costoMina=50
+    ju.efectos={}
     ju.danhoproyectil=20
     ju.banderaa=false
     ju.band=0
@@ -146,15 +151,21 @@ function entidadesTS.disparar(rrr)
     local py=rrr.body:getY()-24*math.sin(rrr.angulo-ssangulo)
     --nEqu,posX,posY,strimagen,imagen,angulo,magnitud,danho,vida,powerUp,medX,medY,tamanho
     if rrr.energia>rrr.danhoproyectil then
-        entidadesTS.agregarProyectil(rrr.equipo,px,py,1,nil,rrr.angulo,300,rrr.danhoproyectil,10,"ninguno",4,7,1,1)
+        if powerups.usarMisil(rrr) then
+            entidadesTS.agregarProyectil(rrr.equipo,px,py,1,nil,rrr.angulo,powerups.velocidadMisil(entidadesTS),powerups.DANHO_MISIL,powerups.DURACION_MISIL,"ninguno",4,7,1,powerups.TIPO_MISIL)
+            powerups.prepararMisil(entidadesTS.proyectiles[#entidadesTS.proyectiles])
+        else
+            entidadesTS.agregarProyectil(rrr.equipo,px,py,1,nil,rrr.angulo,entidadesTS.velBala,rrr.danhoproyectil,10,"ninguno",4,7,1,1)
+        end
         rrr.energia=rrr.energia-rrr.danhoproyectil
     end
 end
 
 function entidadesTS.plantarMina(rrr)
-    if rrr.energia>rrr.danhomina then
+    if rrr.energia>rrr.costoMina then
         entidadesTS.agregarProyectil(rrr.equipo,rrr.body:getX(),rrr.body:getY(),1,nil,0,0,rrr.danhomina,10,"ninguno",12,12,1,2)
-        rrr.energia=rrr.energia-rrr.danhomina
+        rrr.energia=rrr.energia-rrr.costoMina
+        powerups.minaPlantada(rrr)
     end
 end
 
@@ -200,13 +211,8 @@ function entidadesTS.actualizarProyectiles(dt)
         -- balas y minas duran `vida` segundos
         p.vida=p.vida-1*dt
     end
-    for i=1,#entidadesTS.powerUps do
-        if entidadesTS.powerUps[i].vida<61 and entidadesTS.powerUps[i].vida>1 then
-            entidadesTS.powerUps[i].vida=entidadesTS.powerUps[i].vida-1*dt
-        elseif entidadesTS.powerUps[i].vida<1 then
-            entidadesTS.powerUps[i].vida=70
-        end
-    end
+    powerups.actualizarCajas(entidadesTS.powerUps,dt)
+    powerups.guiarMisiles(entidadesTS,dt)
 end
 --[[
 function entidadesTS.actualizarJugadorMando(dt,pllayer,jjoys)
@@ -257,45 +263,43 @@ end
 ]]
 function entidadesTS.actualizarJugadorTeclado(dt,pllayer)
         pllayer.posX,pllayer.posY=pllayer.body:getPosition()
-        local limiteVelocidad=100
-        local tempx,tempy=pllayer.body:getLinearVelocity()
-        local magnitud=math.sqrt((tempx*tempx)+(tempy*tempy))
-        --restar valores absolutos podria ser mejor
-        
+        local mult=pllayer.multVelocidad or 1
+        local limiteVelocidad=entidadesTS.velMaxJugador*mult
+        local masa=pllayer.body:getMass()
+        local acel=250*mult/masa
+        local roce=100/masa
+        -- orugas: el tanque solo avanza o retrocede hacia donde apunta, nunca
+        -- se desliza de lado (antes, tras girar seguia en la direccion vieja)
+        local vx,vy=pllayer.body:getLinearVelocity()
+        local avance=vx*(-math.sin(pllayer.angulo))+vy*math.cos(pllayer.angulo)
         if love.keyboard.isDown(pllayer.input.adelante) then
-            if magnitud<limiteVelocidad then 
-                pllayer.body:applyLinearImpulse((-250)*math.cos(pllayer.angulo-ssangulo)*dt,(-250)*math.sin(pllayer.angulo-ssangulo)*dt)
+            if avance<limiteVelocidad then
+                avance=math.min(limiteVelocidad,avance+acel*dt)
+            else
+                avance=math.max(limiteVelocidad,avance-roce*dt)
             end
         elseif love.keyboard.isDown(pllayer.input.atras) then
-            if magnitud<limiteVelocidad then 
-                pllayer.body:applyLinearImpulse((250)*math.cos(pllayer.angulo-ssangulo)*dt,(250)*math.sin(pllayer.angulo-ssangulo)*dt)
-            end
-        elseif love.keyboard.isDown(pllayer.input.izquierda) then
-            pllayer.angulo=pllayer.angulo-math.rad(100)*dt
-        elseif love.keyboard.isDown(pllayer.input.derecha) then
-            pllayer.angulo=pllayer.angulo+math.rad(100)*dt
-            if tempx>0 then
-                pllayer.body:applyLinearImpulse(-30*dt,0)
+            if avance>-limiteVelocidad then
+                avance=math.max(-limiteVelocidad,avance-acel*dt)
             else
-                pllayer.body:applyLinearImpulse(30*dt,0)
+                avance=math.min(-limiteVelocidad,avance+roce*dt)
             end
-            if tempy>0 then
-                pllayer.body:applyLinearImpulse(0,-30*dt)
+        else
+            if love.keyboard.isDown(pllayer.input.izquierda) then
+                pllayer.angulo=pllayer.angulo-math.rad(100)*dt
+            elseif love.keyboard.isDown(pllayer.input.derecha) then
+                pllayer.angulo=pllayer.angulo+math.rad(100)*dt
+            end
+            -- sin acelerar lo frena el roce
+            if avance>0 then
+                avance=math.max(0,avance-roce*dt)
             else
-                pllayer.body:applyLinearImpulse(0,30*dt)
+                avance=math.min(0,avance+roce*dt)
             end
-        else
-        if tempx>0 then
-            pllayer.body:applyLinearImpulse(-100*dt,0)
-        else
-            pllayer.body:applyLinearImpulse(100*dt,0)
         end
-        if tempy>0 then
-            pllayer.body:applyLinearImpulse(0,-100*dt)
-        else
-            pllayer.body:applyLinearImpulse(0,100*dt)
-        end
-        end
+        pllayer.body:setLinearVelocity(-math.sin(pllayer.angulo)*avance,math.cos(pllayer.angulo)*avance)
+        -- los bots leen la velocidad de avance igual que en los otros modos
+        pllayer.magnitud=avance
         
         pllayer.energia=pllayer.energia+pllayer.ratio*dt
         if pllayer.energia>pllayer.limite then
@@ -330,6 +334,9 @@ end
 
 function entidadesTS.actualizarJugadores(dt,joys)
     entidadesTS.matarJugadores()
+    for i=1,#entidadesTS.jugadores do
+        powerups.actualizar(entidadesTS.jugadores[i],dt)
+    end
     for i=1,#entidadesTS.jugadores do
         --[[if entidadesTS.jugadores[i].input.joystick then
             entidadesTS.actualizarJugadorMando(dt,entidadesTS.jugadores[i],joys)
@@ -409,35 +416,7 @@ function entidadesTS.matarJugadores()
 end
 
 function entidadesTS.procesarColPow(pU,ply)
-    if pU.tipo == 1 then
-        ply.energia=300
-        ply.limite=300
-        ply.ratio=80
-    elseif pU.tipo == 2 then
-        ply.vida=200
-    elseif pU.tipo == 3 then
-        ply.danhomina=200
-    elseif pU.tipo == 4 then
-        ply.magnitud=500
-    end
-end
-
-function entidadesTS.desactivarPu(tipo,ply)
-    if tipo == 1 then
-        if ply.energia>100 then
-            ply.energia=100
-        end
-        ply.limite=100
-        ply.ratio=50
-    elseif tipo == 2 then
-        if ply.vida>100 then
-            ply.vida=100
-        end
-    elseif tipo == 3 then
-        ply.danhomina=50
-    elseif tipo == 4 then
-        ply.magnitud=300
-    end
+    powerups.aplicar(ply,pU.tipo)
 end
 
 function entidadesTS.spawnearJugadores(ent)
@@ -451,6 +430,7 @@ function entidadesTS.spawnearJugadores(ent)
     ent.limite=100
     ent.vida=100
     ent.ratio=50
+    powerups.reiniciar(ent)
 end
 
 function entidadesTS.keypressed( key,scancode,isrepeat)
@@ -488,6 +468,7 @@ function entidadesTS.dibujar(eex,eey,canv,xa,ya)
         if entidadesTS.estaDentro(eex,eey,entidadesTS.proyectiles[i],xa,ya) then
             local fx=entidadesTS.proyectiles[i].posX-eex
             local fy=entidadesTS.proyectiles[i].posY-eey
+            if entidadesTS.proyectiles[i].tipo==powerups.TIPO_MISIL then powerups.dibujarEstelaMisil(entidadesTS.proyectiles[i],fx,fy) end
             love.graphics.draw(entidadesTS.proyectiles[i].imagen,fx,fy,entidadesTS.proyectiles[i].angulo,entidadesTS.proyectiles[i].tamanho,entidadesTS.proyectiles[i].tamanho,entidadesTS.proyectiles[i].medX,entidadesTS.proyectiles[i].medY,0,0)
             --dibuja la caja de colision
         end
@@ -499,13 +480,7 @@ function entidadesTS.dibujar(eex,eey,canv,xa,ya)
         if entidadesTS.estaDentro(eex,eey,entidadesTS.powerUps[i],xa,ya) then
             local fx=entidadesTS.powerUps[i].posX-eex
             local fy=entidadesTS.powerUps[i].posY-eey
-            if entidadesTS.powerUps[i].vida>61 then
-                love.graphics.draw(caja,fx,fy,0,1,1,14,14,0,0)
-            else
-                --love.graphics.setColor(1,1,0)
-                --math.rad(entidadesTS.powerUps[i].vida*60)
-                love.graphics.arc("fill",fx,fy,30,0,math.rad(entidadesTS.powerUps[i].vida*6))
-            end
+            powerups.dibujarCaja(entidadesTS.powerUps[i],fx,fy)
         end
     end
 
@@ -515,6 +490,7 @@ function entidadesTS.dibujar(eex,eey,canv,xa,ya)
                 local fx=entidadesTS.jugadores[i].body:getX()-eex
                 local fy=entidadesTS.jugadores[i].body:getY()-eey
                 love.graphics.draw(entidadesTS.jugadores[i].imagen,fx,fy,entidadesTS.jugadores[i].angulo,entidadesTS.jugadores[i].tamanho,entidadesTS.jugadores[i].tamanho,entidadesTS.jugadores[i].medX,entidadesTS.jugadores[i].medY,0,0)
+                powerups.dibujarJugador(entidadesTS.jugadores[i],fx,fy)
                 --dibuja la caja de colision
             end
     end

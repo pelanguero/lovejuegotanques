@@ -3,6 +3,7 @@
 -- El cliente (jugador 2) solo envia sus teclas y dibuja el estado recibido.
 local red = require "red"
 local juego = require "juego"
+local powerups = require "powerups"
 
 -- ventanas=true: pantalla dividida en ventanas separadas (dos procesos en esta
 -- maquina). Los dos jugadores comparten el teclado, asi que cada ventana
@@ -126,12 +127,13 @@ function online.enviarEstado()
     for i, p in ipairs(E.puntuaciones) do est.p[i] = r1(p.puntos) end
     for i, j in ipairs(E.jugadores) do
         local x, y = j.body:getPosition()
-        est.ju[i] = {r1(x), r1(y), r1(j.angulo * 100) / 100, r1(j.vida), j.banderaa and true or false}
+        est.ju[i] = {r1(x), r1(y), r1(j.angulo * 100) / 100, r1(j.vida), j.banderaa and true or false,
+                     powerups.codificar(j)}
     end
     for i, p in ipairs(E.proyectiles) do
         est.pr[i] = {r1(p.posX), r1(p.posY), r1(p.angulo * 100) / 100, p.equipo, p.tipo}
     end
-    for i, p in ipairs(E.powerUps) do est.pu[i] = r1(p.vida) end
+    for i, p in ipairs(E.powerUps) do est.pu[i] = {r1(p.vida), p.tipo} end
     for i, b in ipairs(E.banderas or {}) do est.ba[i] = {r1(b.posX), r1(b.posY), b.is and true or false} end
     red.enviar(est, false)
 end
@@ -177,6 +179,7 @@ local function aplicarEstado(msg)
             jug.angulo = num(d[3], jug.angulo)
             jug.vida = num(d[4], jug.vida)
             jug.banderaa = d[5] == true
+            powerups.decodificar(jug, d[6])
         end
     end
     -- proyectiles: solo lo necesario para dibujarlos
@@ -184,15 +187,25 @@ local function aplicarEstado(msg)
     for _, d in ipairs(type(msg.pr) == "table" and msg.pr or {}) do
         if type(d) == "table" then
             local mina = d[5] == 2
-            table.insert(lista, {posX = num(d[1], 0), posY = num(d[2], 0), angulo = num(d[3], 0),
+            local misil = d[5] == powerups.TIPO_MISIL
+            local p = {posX = num(d[1], 0), posY = num(d[2], 0), angulo = num(d[3], 0),
                 equipo = num(d[4], 1), tipo = mina and 2 or 1, tamanho = 1, vida = 10,
                 imagen = mina and imgMina or (imgBala[d[4]] or imgBala[1]),
-                medX = mina and 12 or 4, medY = mina and 12 or 7})
+                medX = mina and 12 or 4, medY = mina and 12 or 7}
+            if misil then
+                p.tipo = powerups.TIPO_MISIL
+                powerups.prepararMisil(p)
+            end
+            table.insert(lista, p)
         end
     end
     E.proyectiles = lista
-    for i, v in ipairs(type(msg.pu) == "table" and msg.pu or {}) do
-        if E.powerUps[i] then E.powerUps[i].vida = num(v, E.powerUps[i].vida) end
+    for i, d in ipairs(type(msg.pu) == "table" and msg.pu or {}) do
+        local pw = E.powerUps[i]
+        if pw and type(d) == "table" then
+            pw.vida = num(d[1], pw.vida)
+            if powerups.TIPOS[d[2]] then pw.tipo = d[2] end
+        end
     end
     for i, d in ipairs(type(msg.ba) == "table" and msg.ba or {}) do
         local b = E.banderas and E.banderas[i]

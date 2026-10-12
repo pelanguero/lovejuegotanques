@@ -47,7 +47,8 @@ local NIVELES = {
     },
 }
 
-local VEL_BALA = 300
+-- velocidad de las balas si el modo no la indica (entidades.velBala)
+local VEL_BALA = 600
 local MOVIMIENTOS = {"adelante", "atras", "izquierda", "derecha"}
 
 ------------------------------------------------------------------ teclas virtuales
@@ -95,9 +96,9 @@ end
 -- Punto donde una bala disparada desde (x, y) alcanza a un blanco en (tx, ty)
 -- que se mueve a (vx, vy). Si no lo alcanza, apunta adonde estara el blanco
 -- cuando la bala llegue a su posicion actual.
-local function intercepcion(x, y, tx, ty, vx, vy)
+local function intercepcion(x, y, tx, ty, vx, vy, velBala)
     local dx, dy = tx - x, ty - y
-    local a = vx * vx + vy * vy - VEL_BALA * VEL_BALA
+    local a = vx * vx + vy * vy - velBala * velBala
     local b = 2 * (dx * vx + dy * vy)
     local c = dx * dx + dy * dy
     local t
@@ -115,7 +116,7 @@ local function intercepcion(x, y, tx, ty, vx, vy)
             end
         end
     end
-    t = math.min(t or math.sqrt(c) / VEL_BALA, 3)
+    t = math.min(t or math.sqrt(c) / velBala, 3)
     return tx + vx * t, ty + vy * t
 end
 
@@ -159,6 +160,10 @@ end
 
 function Bot:accion(accion)
     self.modo.keypressed(self.prefijo .. accion, nil, false)
+end
+
+function Bot:velBala()
+    return self.modo.entidades.velBala or VEL_BALA
 end
 
 function Bot:rival()
@@ -208,7 +213,7 @@ function Bot:apuntar(dt, rx, ry, rvx, rvy)
         self.errorAng = (math.random() * 2 - 1) * p.error
         self.errorEspera = 0.6 + math.random() * 0.6
     end
-    local ix, iy = intercepcion(self.x, self.y, rx, ry, rvx * p.anticipar, rvy * p.anticipar)
+    local ix, iy = intercepcion(self.x, self.y, rx, ry, rvx * p.anticipar, rvy * p.anticipar, self:velBala())
     local dx, dy = ix - self.x, iy - self.y
     local c, s = math.cos(self.errorAng), math.sin(self.errorAng)
     return self.x + dx * c - dy * s, self.y + dx * s + dy * c
@@ -224,12 +229,13 @@ function Bot:amenaza()
     local tx, ty = frente(self.j.angulo)
     local tvx, tvy = tx * self.j.magnitud, ty * self.j.magnitud
     local mejor, mejorT
+    local vb = self:velBala()
     for _, pr in ipairs(self.modo.entidades.proyectiles) do
         if pr.tipo == 1 and pr.equipo ~= self.j.equipo then
             local bx, by = posicion(pr)
             local fx, fy = frente(pr.angulo)
             -- movimiento de la bala visto desde el tanque
-            local wx, wy = fx * VEL_BALA - tvx, fy * VEL_BALA - tvy
+            local wx, wy = fx * vb - tvx, fy * vb - tvy
             local w2 = wx * wx + wy * wy
             local rx, ry = self.x - bx, self.y - by
             local t = w2 > 100 and (rx * wx + ry * wy) / w2 or -1
@@ -493,7 +499,7 @@ end
 function Bot:usarMinas(dt, rx, ry, rvx, rvy, dist, situacion)
     local p, j = self.p, self.j
     self.minaEspera = self.minaEspera - dt
-    if p.minas <= 0 or self.minaEspera > 0 or j.energia <= (j.danhomina or 50) then return end
+    if p.minas <= 0 or self.minaEspera > 0 or j.energia <= (j.costoMina or 50) then return end
     local detras = math.abs(normalizar(anguloHacia(rx - self.x, ry - self.y) - j.angulo)) > 2.2
     local acercandose = (self.x - rx) * rvx + (self.y - ry) * rvy > 0
     local conviene = (dist < 280 and detras and acercandose and j.magnitud > 60)

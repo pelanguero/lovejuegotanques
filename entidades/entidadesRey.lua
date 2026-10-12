@@ -1,4 +1,8 @@
 local entidadesRey={rcolina=250,colina={},jugadores={},proyectiles={},powerUps={},spawns={},ancho=950,alto=950,puntuaciones={},particulas={}}
+local powerups=require "powerups"
+-- velocidad de las balas y velocidad maxima de un tanque sin turbo
+entidadesRey.velBala=600
+entidadesRey.velMaxJugador=300
 local tanques ={"//assets/tanques/tank_dark.png","//assets/tanques/tank_red.png","//assets/tanques/tank_green.png"}
 local proyectiles={"//assets/proyectiles/bulletDark1_outline.png","//assets/proyectiles/bulletRed1_outline.png","//assets/proyectiles/bulletGreen1_outline.png"}
 local mina=love.graphics.newImage("//assets/mina.png")
@@ -8,7 +12,6 @@ local mcbs=cbs/2
 local world=love.physics.newWorld(0,0,false)
 local calavera=love.graphics.newImage("//assets/skull.png")
 local particulas=love.graphics.newImage("//assets/explosion3.png")
-local caja=love.graphics.newImage("//assets/crateMetal.png")
 local llantas=love.graphics.newImage("//assets/tracksLarge.png")
 function entidadesRey.agregarEquipo()
 local equipo={}
@@ -38,10 +41,10 @@ function entidadesRey.agregarSpawn(spx,spy)
     spawn.y=spy
     table.insert( entidadesRey.spawns,spawn )
 end
---tipo:1=tanque de energia plus,2=Sobreescudo,3=modificador de minas,4=velocidad plus
+-- tipos y efectos de los power-ups: powerups.lua
 
 function entidadesRey.agregarPowerUp(pwx,pwy)
-    local tipo=math.random(1,4)
+    local tipo=powerups.tipoAlAzar()
     local pw={}
     pw.posX=pwx
     pw.posY=pwy
@@ -84,6 +87,8 @@ function entidadesRey.agregarJugador(nEqu,posX,posY,strimagen,imagen,angulo,magn
     ju.eqimpac=0
     ju.spawnear=true
     ju.danhomina=50
+    ju.costoMina=50
+    ju.efectos={}
     ju.danhoproyectil=20
     ju.banderaa=false
     ju.band=0
@@ -125,15 +130,21 @@ function entidadesRey.disparar(rrr)
     local py=rrr.posY-24*math.sin(rrr.angulo-ssangulo)
     --nEqu,posX,posY,strimagen,imagen,angulo,magnitud,danho,vida,powerUp,medX,medY,tamanho
     if rrr.energia>rrr.danhoproyectil then
-        entidadesRey.agregarProyectil(rrr.equipo,px,py,1,nil,rrr.angulo,300,rrr.danhoproyectil,10,"ninguno",4,7,1,1)
+        if powerups.usarMisil(rrr) then
+            entidadesRey.agregarProyectil(rrr.equipo,px,py,1,nil,rrr.angulo,powerups.velocidadMisil(entidadesRey),powerups.DANHO_MISIL,powerups.DURACION_MISIL,"ninguno",4,7,1,powerups.TIPO_MISIL)
+            powerups.prepararMisil(entidadesRey.proyectiles[#entidadesRey.proyectiles])
+        else
+            entidadesRey.agregarProyectil(rrr.equipo,px,py,1,nil,rrr.angulo,entidadesRey.velBala,rrr.danhoproyectil,10,"ninguno",4,7,1,1)
+        end
         rrr.energia=rrr.energia-rrr.danhoproyectil
     end
 end
 
 function entidadesRey.plantarMina(rrr)
-    if rrr.energia>rrr.danhomina then
+    if rrr.energia>rrr.costoMina then
         entidadesRey.agregarProyectil(rrr.equipo,rrr.posX,rrr.posY,1,nil,0,0,rrr.danhomina,10,"ninguno",12,12,1,2)
-        rrr.energia=rrr.energia-rrr.danhomina
+        rrr.energia=rrr.energia-rrr.costoMina
+        powerups.minaPlantada(rrr)
     end
 end
 
@@ -196,13 +207,8 @@ function entidadesRey.actualizarProyectiles(dt)
         -- balas y minas duran `vida` segundos
         p.vida=p.vida-1*dt
     end
-    for i=1,#entidadesRey.powerUps do
-        if entidadesRey.powerUps[i].vida<61 and entidadesRey.powerUps[i].vida>1 then
-            entidadesRey.powerUps[i].vida=entidadesRey.powerUps[i].vida-1*dt
-        elseif entidadesRey.powerUps[i].vida<1 then
-            entidadesRey.powerUps[i].vida=70
-        end
-    end
+    powerups.actualizarCajas(entidadesRey.powerUps,dt)
+    powerups.guiarMisiles(entidadesRey,dt)
 end
 
 function entidadesRey.actualizarJugadorMando(dt,pllayer,jjoys)
@@ -305,6 +311,9 @@ end
 
 function entidadesRey.actualizarJugadores(dt)
     entidadesRey.matarJugadores()
+    for i=1,#entidadesRey.jugadores do
+        powerups.actualizar(entidadesRey.jugadores[i],dt)
+    end
     for i=1,#entidadesRey.jugadores do
         if entidadesRey.jugadores[i].input.joystick then
             entidadesRey.actualizarJugadorMando(dt,entidadesRey.jugadores[i])
@@ -433,35 +442,7 @@ function entidadesRey.matarJugadores()
 end
 
 function entidadesRey.procesarColPow(pU,ply)
-    if pU.tipo == 1 then
-        ply.energia=300
-        ply.limite=300
-        ply.ratio=80
-    elseif pU.tipo == 2 then
-        ply.vida=200
-    elseif pU.tipo == 3 then
-        ply.danhomina=200
-    elseif pU.tipo == 4 then
-        ply.magnitud=500
-    end
-end
-
-function entidadesRey.desactivarPu(tipo,ply)
-    if tipo == 1 then
-        if ply.energia>100 then
-            ply.energia=100
-        end
-        ply.limite=100
-        ply.ratio=50
-    elseif tipo == 2 then
-        if ply.vida>100 then
-            ply.vida=100
-        end
-    elseif tipo == 3 then
-        ply.danhomina=50
-    elseif tipo == 4 then
-        ply.magnitud=300
-    end
+    powerups.aplicar(ply,pU.tipo)
 end
 
 function entidadesRey.spawnearJugadores(ent)
@@ -474,6 +455,7 @@ function entidadesRey.spawnearJugadores(ent)
     ent.limite=100
     ent.vida=100
     ent.ratio=50
+    powerups.reiniciar(ent)
 end
 
 
@@ -502,13 +484,7 @@ function entidadesRey.dibujar(eex,eey,canv,xa,ya)
         if entidadesRey.estaDentro(eex,eey,entidadesRey.powerUps[i],xa,ya) then
             local fx=entidadesRey.powerUps[i].posX-eex
             local fy=entidadesRey.powerUps[i].posY-eey
-            if entidadesRey.powerUps[i].vida>61 then
-                love.graphics.draw(caja,fx,fy,0,1,1,14,14,0,0)
-            else
-                --love.graphics.setColor(1,1,0)
-                --math.rad(entidadesRey.powerUps[i].vida*60)
-                love.graphics.arc("fill",fx,fy,30,0,math.rad(entidadesRey.powerUps[i].vida*6))
-            end
+            powerups.dibujarCaja(entidadesRey.powerUps[i],fx,fy)
         end
     end
     if entidadesRey.estaDentro(eex,eey,entidadesRey.colina[1],xa,ya) then
@@ -521,6 +497,7 @@ function entidadesRey.dibujar(eex,eey,canv,xa,ya)
         if entidadesRey.estaDentro(eex,eey,entidadesRey.proyectiles[i],xa,ya) then
             local fx=entidadesRey.proyectiles[i].posX-eex
             local fy=entidadesRey.proyectiles[i].posY-eey
+            if entidadesRey.proyectiles[i].tipo==powerups.TIPO_MISIL then powerups.dibujarEstelaMisil(entidadesRey.proyectiles[i],fx,fy) end
             love.graphics.draw(entidadesRey.proyectiles[i].imagen,fx,fy,entidadesRey.proyectiles[i].angulo,entidadesRey.proyectiles[i].tamanho,entidadesRey.proyectiles[i].tamanho,entidadesRey.proyectiles[i].medX,entidadesRey.proyectiles[i].medY,0,0)
             --dibuja la caja de colision
         end
@@ -533,6 +510,7 @@ function entidadesRey.dibujar(eex,eey,canv,xa,ya)
                 local fx=entidadesRey.jugadores[i].posX-eex
                 local fy=entidadesRey.jugadores[i].posY-eey
                 love.graphics.draw(entidadesRey.jugadores[i].imagen,fx,fy,entidadesRey.jugadores[i].angulo,entidadesRey.jugadores[i].tamanho,entidadesRey.jugadores[i].tamanho,entidadesRey.jugadores[i].medX,entidadesRey.jugadores[i].medY,0,0)
+                powerups.dibujarJugador(entidadesRey.jugadores[i],fx,fy)
                 --dibuja la caja de colision
             end
     end

@@ -78,6 +78,7 @@ function bolaL.camara(equipo,jugador,canvasss,llancho,llalto)
     end
     bolaL.mapa.dibujar(xsx,ysy,llancho,llalto,canvasss)
     bolaL.entidades.dibujar(xsx,ysy,canvasss,llancho,llalto)
+    hud.powerups(bolaL.entidades.jugadores[jugador],canvasss,llancho,llalto)
     return xsx,ysy
 end
 --Mantiene a la entidad dentro de los limites del mapa

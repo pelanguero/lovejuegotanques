@@ -78,6 +78,7 @@ function ctf.camara(equipo,jugador,canvasss,llancho,llalto)
     end
     ctf.mapa.dibujar(xsx,ysy,llancho,llalto,canvasss)
     ctf.entidades.dibujar(xsx,ysy,canvasss,llancho,llalto)
+    hud.powerups(ctf.entidades.jugadores[jugador],canvasss,llancho,llalto)
     return xsx,ysy
 end
 --Mantiene a la entidad dentro de los limites del mapa

@@ -1,4 +1,8 @@
 local entidadesBol={jugadores={},proyectiles={},powerUps={},spawns={},banderas={},ancho=850,alto=850,puntuaciones={},particulas={}}
+local powerups=require "powerups"
+-- velocidad de las balas y velocidad maxima de un tanque sin turbo
+entidadesBol.velBala=600
+entidadesBol.velMaxJugador=300
 local tanques ={"//assets/tanques/tank_dark.png","//assets/tanques/tank_red.png","//assets/tanques/tank_green.png"}
 local proyectiles={"//assets/proyectiles/bulletDark1_outline.png","//assets/proyectiles/bulletRed1_outline.png","//assets/proyectiles/bulletGreen1_outline.png"}
 local mina=love.graphics.newImage("//assets/mina.png")
@@ -8,7 +12,6 @@ local world=love.physics.newWorld(0,0,false)
 local mcbs=cbs/2
 local calavera=love.graphics.newImage("//assets/skull.png")
 local particulas=love.graphics.newImage("//assets/explosion3.png")
-local caja=love.graphics.newImage("//assets/crateMetal.png")
 local cajam=love.graphics.newImage("//assets/crateWood.png")
 local llantas=love.graphics.newImage("//assets/tracksLarge.png")
 function entidadesBol.agregarEquipo()
@@ -55,10 +58,10 @@ function entidadesBol.resetBandera(band)
     band.vida=12
 end    
 
---tipo:1=tanque de energia plus,2=Sobreescudo,3=modificador de minas,4=velocidad plus
+-- tipos y efectos de los power-ups: powerups.lua
 
 function entidadesBol.agregarPowerUp(pwx,pwy)
-    local tipo=math.random(1,4)
+    local tipo=powerups.tipoAlAzar()
     local pw={}
     pw.posX=pwx
     pw.posY=pwy
@@ -101,6 +104,8 @@ function entidadesBol.agregarJugador(nEqu,posX,posY,strimagen,imagen,angulo,magn
     ju.eqimpac=0
     ju.spawnear=true
     ju.danhomina=50
+    ju.costoMina=50
+    ju.efectos={}
     ju.danhoproyectil=20
     ju.banderaa=false
     ju.band=0
@@ -142,16 +147,22 @@ function entidadesBol.disparar(rrr)
     local py=rrr.posY-24*math.sin(rrr.angulo-ssangulo)
     --nEqu,posX,posY,strimagen,imagen,angulo,magnitud,danho,vida,powerUp,medX,medY,tamanho
     if rrr.energia>rrr.danhoproyectil then
-        entidadesBol.agregarProyectil(rrr.equipo,px,py,1,nil,rrr.angulo,600,rrr.danhoproyectil,10,"ninguno",4,7,1,1)
+        if powerups.usarMisil(rrr) then
+            entidadesBol.agregarProyectil(rrr.equipo,px,py,1,nil,rrr.angulo,powerups.velocidadMisil(entidadesBol),powerups.DANHO_MISIL,powerups.DURACION_MISIL,"ninguno",4,7,1,powerups.TIPO_MISIL)
+            powerups.prepararMisil(entidadesBol.proyectiles[#entidadesBol.proyectiles])
+        else
+            entidadesBol.agregarProyectil(rrr.equipo,px,py,1,nil,rrr.angulo,entidadesBol.velBala,rrr.danhoproyectil,10,"ninguno",4,7,1,1)
+        end
         son.play(son.sun[3])
         rrr.energia=rrr.energia-rrr.danhoproyectil
     end
 end
 
 function entidadesBol.plantarMina(rrr)
-    if rrr.energia>rrr.danhomina then
+    if rrr.energia>rrr.costoMina then
         entidadesBol.agregarProyectil(rrr.equipo,rrr.posX,rrr.posY,1,nil,0,0,rrr.danhomina,10,"ninguno",12,12,1,2)
-        rrr.energia=rrr.energia-rrr.danhomina
+        rrr.energia=rrr.energia-rrr.costoMina
+        powerups.minaPlantada(rrr)
         son.play(son.mina[1])
     end
 end
@@ -199,13 +210,8 @@ function entidadesBol.actualizarProyectiles(dt)
         -- balas y minas duran `vida` segundos
         p.vida=p.vida-1*dt
     end
-    for i=1,#entidadesBol.powerUps do
-        if entidadesBol.powerUps[i].vida<61 and entidadesBol.powerUps[i].vida>1 then
-            entidadesBol.powerUps[i].vida=entidadesBol.powerUps[i].vida-1*dt
-        elseif entidadesBol.powerUps[i].vida<1 then
-            entidadesBol.powerUps[i].vida=70
-        end
-    end
+    powerups.actualizarCajas(entidadesBol.powerUps,dt)
+    powerups.guiarMisiles(entidadesBol,dt)
 
     for i=1,#entidadesBol.banderas do
         if entidadesBol.banderas[i].vida<0 then
@@ -271,6 +277,9 @@ end
 
 function entidadesBol.actualizarJugadores(dt,joys)
     entidadesBol.matarJugadores()
+    for i=1,#entidadesBol.jugadores do
+        powerups.actualizar(entidadesBol.jugadores[i],dt)
+    end
     for i=1,#entidadesBol.jugadores do
         if entidadesBol.jugadores[i].input.joystick then
             --entidadesBol.actualizarJugadorMando(dt,entidadesBol.jugadores[i])
@@ -401,35 +410,7 @@ function entidadesBol.matarJugadores()
 end
 
 function entidadesBol.procesarColPow(pU,ply)
-    if pU.tipo == 1 then
-        ply.energia=300
-        ply.limite=300
-        ply.ratio=80
-    elseif pU.tipo == 2 then
-        ply.vida=200
-    elseif pU.tipo == 3 then
-        ply.danhomina=200
-    elseif pU.tipo == 4 then
-        ply.magnitud=500
-    end
-end
-
-function entidadesBol.desactivarPu(tipo,ply)
-    if tipo == 1 then
-        if ply.energia>100 then
-            ply.energia=100
-        end
-        ply.limite=100
-        ply.ratio=50
-    elseif tipo == 2 then
-        if ply.vida>100 then
-            ply.vida=100
-        end
-    elseif tipo == 3 then
-        ply.danhomina=50
-    elseif tipo == 4 then
-        ply.magnitud=300
-    end
+    powerups.aplicar(ply,pU.tipo)
 end
 
 function entidadesBol.spawnearJugadores(ent)
@@ -442,6 +423,7 @@ function entidadesBol.spawnearJugadores(ent)
     ent.limite=100
     ent.vida=100
     ent.ratio=50
+    powerups.reiniciar(ent)
 end
 
 
@@ -456,14 +438,7 @@ function entidadesBol.dibujar(eex,eey,canv,xa,ya)
         if entidadesBol.estaDentro(eex,eey,entidadesBol.powerUps[i],xa,ya) then
             local fx=entidadesBol.powerUps[i].posX-eex
             local fy=entidadesBol.powerUps[i].posY-eey
-            if entidadesBol.powerUps[i].vida>61 then
-                love.graphics.draw(caja,fx,fy,0,1,1,14,14,0,0)
-            else
-                love.graphics.setColor(0,255,0)
-                --math.rad(entidadesBol.powerUps[i].vida*60)
-                love.graphics.arc("fill",fx,fy,30,0,math.rad(entidadesBol.powerUps[i].vida*6))
-                love.graphics.setColor(255,255,255)
-            end
+            powerups.dibujarCaja(entidadesBol.powerUps[i],fx,fy)
         end
     end
 
@@ -471,6 +446,7 @@ function entidadesBol.dibujar(eex,eey,canv,xa,ya)
         if entidadesBol.estaDentro(eex,eey,entidadesBol.proyectiles[i],xa,ya) then
             local fx=entidadesBol.proyectiles[i].posX-eex
             local fy=entidadesBol.proyectiles[i].posY-eey
+            if entidadesBol.proyectiles[i].tipo==powerups.TIPO_MISIL then powerups.dibujarEstelaMisil(entidadesBol.proyectiles[i],fx,fy) end
             love.graphics.draw(entidadesBol.proyectiles[i].imagen,fx,fy,entidadesBol.proyectiles[i].angulo,entidadesBol.proyectiles[i].tamanho,entidadesBol.proyectiles[i].tamanho,entidadesBol.proyectiles[i].medX,entidadesBol.proyectiles[i].medY,0,0)
             --dibuja la caja de colision
         end
@@ -507,6 +483,7 @@ function entidadesBol.dibujar(eex,eey,canv,xa,ya)
                 entidadesBol.jugadores[i].rposX=entidadesBol.jugadores[i].posX-eex
                 entidadesBol.jugadores[i].rposY=entidadesBol.jugadores[i].posY-eey
                 love.graphics.draw(entidadesBol.jugadores[i].imagen,entidadesBol.jugadores[i].rposX,entidadesBol.jugadores[i].rposY,entidadesBol.jugadores[i].angulo,entidadesBol.jugadores[i].tamanho,entidadesBol.jugadores[i].tamanho,entidadesBol.jugadores[i].medX,entidadesBol.jugadores[i].medY,0,0)
+                powerups.dibujarJugador(entidadesBol.jugadores[i],entidadesBol.jugadores[i].rposX,entidadesBol.jugadores[i].rposY)
                 --dibuja la caja de colision
             end
     end

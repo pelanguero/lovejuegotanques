@@ -78,6 +78,28 @@ local function probarMecanica(modo)
     local okd, errd = pcall(dibujar, m)
     check(nm, "dibujar sin error", okd, errd)
 
+    -- la bala recorre velBala por segundo
+    enfrentar(m)
+    teleport(j2, E.spawns[2].x, E.spawns[2].y)
+    disparar("q")
+    local bala = E.proyectiles[#E.proyectiles]
+    local bx0, by0 = bala.posX, bala.posY
+    correrModo(m, 0.5)
+    local recorrido = math.sqrt((bala.posX - bx0)^2 + (bala.posY - by0)^2)
+    check(nm, "bala a 600 px/s", math.abs(recorrido - 300) < 25, string.format("%.0f px en 0.5s", recorrido))
+
+    -- tras acelerar y girar, el tanque avanza hacia donde apunta (sin derrapar)
+    teleport(j1, mapaW/2, mapaH/2); j1.angulo = 0; j1.magnitud = 0
+    teclas.w = true; correrModo(m, 2); teclas.w = nil
+    teclas.a = true; correrModo(m, 0.6); teclas.a = nil
+    teclas.w = true; correrModo(m, 0.2)
+    local ax, ay = pos(j1); correrModo(m, 0.3); teclas.w = nil
+    local bx, by = pos(j1)
+    local dx, dy = bx - ax, by - ay
+    local dd = math.sqrt(dx*dx + dy*dy)
+    local alineado = dd > 1 and (dx * -math.sin(j1.angulo) + dy * math.cos(j1.angulo)) / dd or 0
+    check(nm, "sin derrape: avanza hacia donde apunta", alineado > 0.98, string.format("alineacion=%.2f", alineado))
+
     enfrentar(m)
     local vida0 = j2.vida
     disparar("q"); correrModo(m, 0.6)
@@ -140,6 +162,113 @@ local function probarMecanica(modo)
     check(nm, "60s de juego sin crash", oke, erre)
     check(nm, "proyectiles acotados", #E.proyectiles < 40, "#proyectiles=" .. #E.proyectiles)
     check(nm, "particulas acotadas", #E.particulas < 200, "#particulas=" .. #E.particulas)
+end
+
+------------------------------------------------------------ power-ups
+
+local function probarPowerUps(modo)
+    local nm = nombres[modo]
+    local pu = require "powerups"
+    local red = require "red"
+    juego.nuevaPartida(config(modo), 1200, 600)
+    local m = juego.mododejuego
+    local E = m.entidades
+    local j1, j2 = E.jugadores[1], E.jugadores[2]
+    local mapaW, mapaH = m.mapa.tablamapa.width * 64, m.mapa.tablamapa.height * 64
+    correrModo(m, 0.2)
+    teleport(j2, E.spawns[2].x, E.spawns[2].y)
+
+    -- recoger una caja
+    local caja = E.powerUps[1]
+    caja.tipo = pu.TURBO
+    teleport(j1, caja.posX, caja.posY); correrModo(m, 0.1)
+    check(nm, "recoger caja activa el efecto", j1.efectos[pu.TURBO] ~= nil and caja.vida <= 60 and j1.anuncio ~= nil,
+        string.format("turbo=%s caja=%.1f", tostring(j1.efectos[pu.TURBO] ~= nil), caja.vida))
+
+    -- el turbo acelera y se acaba solo
+    local function recorrido()
+        teleport(j1, mapaW/2, mapaH/2); j1.angulo = 0; j1.magnitud = 0
+        local x0, y0 = pos(j1)
+        teclas.w = true; correrModo(m, 2); teclas.w = nil
+        local x1, y1 = pos(j1)
+        return math.sqrt((x1-x0)^2 + (y1-y0)^2)
+    end
+    local conTurbo = recorrido()
+    correrModo(m, pu.TIPOS[pu.TURBO].duracion)
+    local sinTurbo = recorrido()
+    check(nm, "turbo: mas rapido y expira", conTurbo > sinTurbo * 1.2 and j1.efectos[pu.TURBO] == nil,
+        string.format("dist %.0f vs %.0f", conTurbo, sinTurbo))
+
+    -- minas pesadas: 3 cargas
+    teleport(j1, mapaW/2, mapaH/2)
+    pu.aplicar(j1, pu.MINAS)
+    j1.energia = 100
+    disparar("e"); correrModo(m, 0.05)
+    local ultima = E.proyectiles[#E.proyectiles]
+    local fuerte = ultima and ultima.tipo == 2 and ultima.danho == 200
+    for _ = 1, 2 do j1.energia = 100; disparar("e"); correrModo(m, 0.05) end
+    check(nm, "minas pesadas gastan 3 cargas", fuerte and j1.efectos[pu.MINAS] == nil and j1.danhomina == 50,
+        string.format("fuerte=%s danhomina=%s", tostring(fuerte), j1.danhomina))
+
+    -- sobreescudo hasta perder la vida extra
+    pu.aplicar(j1, pu.ESCUDO)
+    local conEscudo = j1.vida == 200 and j1.efectos[pu.ESCUDO] ~= nil
+    j1.vida = 90; correrModo(m, 0.05)
+    check(nm, "sobreescudo se va con la vida extra", conEscudo and j1.efectos[pu.ESCUDO] == nil)
+
+    -- misil: sale al disparar, va a 1.25x la velocidad maxima y persigue al rival
+    teleport(j1, mapaW/2, mapaH/2); j1.angulo = 0
+    teleport(j2, mapaW/2 + 250, mapaH/2 + 60)
+    j2.vida = 100
+    pu.aplicar(j1, pu.MISIL)
+    j1.energia = 100
+    local n0 = #E.proyectiles
+    disparar("q"); correrModo(m, 0.05)
+    local misil = E.proyectiles[#E.proyectiles]
+    local esMisil = #E.proyectiles > n0 and misil.tipo == pu.TIPO_MISIL
+    local esperada = 1.25 * E.velMaxJugador
+    check(nm, "misil: velocidad 1.25x del tanque", esMisil and math.abs(misil.magnitud - esperada) < 0.01
+        and j1.efectos[pu.MISIL].cargas == 1,
+        string.format("misil=%s vel=%s esperada=%s", tostring(esMisil), tostring(misil and misil.magnitud), esperada))
+    -- el rival esta a un lado: una bala recta no le daria
+    local vida0 = j2.vida
+    for _ = 1, math.floor(5 / DT) do
+        teleport(j2, mapaW/2 + 250, mapaH/2 + 60)
+        m.proupdate(DT, {})
+        if j2.vida < vida0 then break end
+    end
+    check(nm, "misil persigue y golpea al rival", j2.vida == vida0 - pu.DANHO_MISIL,
+        string.format("vida %s -> %s", vida0, j2.vida))
+    j1.energia = 100; disparar("q"); correrModo(m, 0.05)
+    local segundo = E.proyectiles[#E.proyectiles]
+    j1.energia = 100; disparar("q"); correrModo(m, 0.05)
+    local tercero = E.proyectiles[#E.proyectiles]
+    check(nm, "misil: 2 cargas y luego balas normales", segundo.tipo == pu.TIPO_MISIL and tercero.tipo == 1
+        and j1.efectos[pu.MISIL] == nil and tercero.magnitud == E.velBala)
+    teleport(j2, E.spawns[2].x, E.spawns[2].y)
+
+    -- todos los efectos activos: dibujar mapa, tanque, misil y HUD
+    for t = 1, #pu.TIPOS do pu.aplicar(j1, t) end
+    j1.energia = 100; disparar("q"); correrModo(m, 0.2)
+    local okd, errd = pcall(dibujar, m)
+    check(nm, "dibujar con todos los efectos activos", okd, errd)
+
+    -- por red: el cliente ve los mismos efectos y la animacion
+    local copia = {vida = j1.vida}
+    pu.decodificar(copia, red.decodificar(red.codificar(pu.codificar(j1))))
+    local iguales = copia.anuncio ~= nil
+    for t = 1, #pu.TIPOS do iguales = iguales and (copia.efectos[t] ~= nil) end
+    check(nm, "efectos viajan por red", iguales)
+
+    -- morir borra los efectos
+    j1.vida = 0; correrModo(m, 0.05)
+    check(nm, "al reaparecer no quedan efectos", next(j1.efectos) == nil and j1.limite == 100
+        and (j1.multVelocidad or 1) == 1, "limite=" .. tostring(j1.limite))
+
+    -- la caja reaparece
+    caja.vida = 1.5; correrModo(m, 1)
+    check(nm, "caja reaparece con tipo valido", caja.vida > 60 and pu.TIPOS[caja.tipo] ~= nil,
+        string.format("vida=%.1f tipo=%s", caja.vida, tostring(caja.tipo)))
 end
 
 ------------------------------------------------------------ reglas de victoria
@@ -300,6 +429,9 @@ function pruebas.correr()
     for modo = 1, 4 do
         local ok, err = pcall(probarMecanica, modo)
         if not ok then check(nombres[modo], "iniciar / probar modo", false, tostring(err)) end
+        teclas = {}
+        ok, err = pcall(probarPowerUps, modo)
+        if not ok then check(nombres[modo], "probar power-ups", false, tostring(err)) end
         teclas = {}
     end
     local ok, err = pcall(probarVictoria)
