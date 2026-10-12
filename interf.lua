@@ -313,8 +313,39 @@ local function dibujarElemento(ele, activo)
     love.graphics.printf(valorTexto(ele), font, izq.x + izq.w, ty, der.x - izq.x - izq.w, "center")
 end
 
-function interf.dibijarElementos()
-    love.graphics.clear(colores.fondo)
+-- Panel oscuro detras del titulo y los elementos, para leerlos sobre el juego
+local function dibujarPanel()
+    local w, h = love.graphics.getDimensions()
+    love.graphics.setColor(0, 0, 0, 0.3)
+    love.graphics.rectangle("fill", 0, 0, w, h)
+    local ancho = titulo and titulo:getWidth() or 0
+    local abajo = 160
+    for _, ele in ipairs(interf.elementos) do
+        ancho = math.max(ancho, ele.w)
+        abajo = math.max(abajo, ele.y + ele.h)
+    end
+    if interf.subtitulo then
+        ancho = math.max(ancho, math.min(font:getWidth(interf.subtitulo), w - 80))
+    end
+    ancho = ancho + 60
+    local x = math.floor((w - ancho) / 2)
+    love.graphics.setColor(colores.fondo[1], colores.fondo[2], colores.fondo[3], 0.88)
+    love.graphics.rectangle("fill", x, 30, ancho, abajo - 30 + 24, 10, 10)
+    love.graphics.setColor(colores.acento[1], colores.acento[2], colores.acento[3], 0.35)
+    love.graphics.rectangle("line", x, 30, ancho, abajo - 30 + 24, 10, 10)
+    -- franja inferior para la ayuda y los errores
+    local franja = interf.mensajeError and 100 or 46
+    love.graphics.setColor(0, 0, 0, 0.6)
+    love.graphics.rectangle("fill", 0, h - franja, w, franja)
+end
+
+-- sobreFondo=true: algo ya se dibujo detras (demo o partida en pausa)
+function interf.dibijarElementos(sobreFondo)
+    if sobreFondo then
+        dibujarPanel()
+    else
+        love.graphics.clear(colores.fondo)
+    end
     if titulo then
         love.graphics.setColor(colores.acento)
         love.graphics.draw(titulo, math.floor((love.graphics.getWidth() - titulo:getWidth()) / 2), 50)

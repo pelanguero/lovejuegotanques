@@ -23,23 +23,25 @@ local function descargarPartida()
     modulosPartida={}
 end
 
-function juego.new(mdj,jancho,jalto,njugadores)
+local rutasModos={"./modosdejuego/TEAMSLAYER","./modosdejuego/CTF",
+    "./modosdejuego/reyDeLaColina","./modosdejuego/bolaL"}
+
+-- Carga un modo desde cero y lo devuelve. Tambien lo usa la demo del menu:
+-- solo puede haber un modo cargado a la vez (entidades y mapa son modulos).
+function juego.cargarModo(mdj,jancho,jalto,njugadores)
     descargarPartida()
     local antes={}
     for nombre in pairs(package.loaded) do antes[nombre]=true end
-    if mdj==1 then
-        juego.mododejuego=require("./modosdejuego/TEAMSLAYER")
-    elseif mdj==2 then
-        juego.mododejuego=require("./modosdejuego/CTF")
-    elseif mdj==3 then
-        juego.mododejuego=require("./modosdejuego/reyDeLaColina")
-    elseif mdj==4 then
-        juego.mododejuego=require("./modosdejuego/bolaL")
-    end
-    juego.mododejuego.new(jancho,jalto,njugadores)
+    local modo=require(rutasModos[mdj])
+    modo.new(jancho,jalto,njugadores)
     for nombre in pairs(package.loaded) do
         if not antes[nombre] then modulosPartida[nombre]=true end
     end
+    return modo
+end
+
+function juego.new(mdj,jancho,jalto,njugadores)
+    juego.mododejuego=juego.cargarModo(mdj,jancho,jalto,njugadores)
     juego.jugando=true
 end
 

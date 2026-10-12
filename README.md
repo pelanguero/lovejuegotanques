@@ -10,6 +10,11 @@ juego de tanques en love lua 2d
 
 Esc pausa la partida.
 
+## Menu
+
+Mientras estas en los menus, el fondo es una demo del juego: un modo al azar con dos
+tanques manejados por la computadora. Cambia de modo cada 25 segundos y no tiene sonido.
+
 ## Pantalla dividida o ventanas separadas
 
 En **Jugar**, la opcion **Pantalla** elige entre:

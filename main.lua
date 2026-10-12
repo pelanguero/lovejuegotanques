@@ -2,6 +2,8 @@ local juego=require "juego"
 local inter= require "interf"
 local online=require "online"
 local red=require "red"
+-- despues de online: su envoltura de love.keyboard.isDown debe ir por fuera
+local demo=require "demo"
 
 local ANCHO, ALTO = 1200, 600
 
@@ -164,6 +166,12 @@ end
 function love.update(dt)
     online.bloquearTeclas(inter.enMenu())
     online.actualizar(dt, inter.enMenu())
+    -- fuera de partida, los menus tienen de fondo una demo del juego
+    if inter.enMenu() and not juego.jugando then
+        demo.actualizar(dt)
+    else
+        demo.detener()
+    end
     if not juego.jugando then return end
     -- un menu pausa la partida local; en linea la partida sigue corriendo
     if inter.enMenu() and not (online.activo() and inter.even==inter.PAUSA) then return end
@@ -189,7 +197,16 @@ end
 
 function love.draw()
     if inter.enMenu() then
-        inter.dibijarElementos()
+        if juego.jugando then
+            -- pausa: el menu va sobre la partida detenida
+            juego.dibujarCapas()
+            inter.dibijarElementos(true)
+        elseif demo.activa() then
+            demo.dibujar()
+            inter.dibijarElementos(true)
+        else
+            inter.dibijarElementos()
+        end
     else
         juego.dibujarCapas()
     end
